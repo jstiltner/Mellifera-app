@@ -1,0 +1,4 @@
+node_modules
+.env
+mellifera/node_modules
+bin
