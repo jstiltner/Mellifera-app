@@ -126,7 +126,9 @@ Will update this when there's some thing to install.
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Mellifera is designed to be a beekeeper's companion, to enable data-driven decision-making for beekeepers from beginners and commerical professionals. In the bee yard, after inspecting hundreds of frames, losing track of which frame went with which hive is a near-certainty. Thick gloves, balancing frames, bee smokers, and hive tools fill up a beekeepers hands, and a clipboard and pen (or tablet and stylus) would require two more. Having only two appendages, Mellifera is a project to solve this problem by leveraging natural language processing to update an extensive, and extensible, database with data about honeybee hives. 
+Mellifera is designed to be a beekeeper's companion, to enable data-driven decision-making for beekeepers from beginners to commercial professionals. In the bee yard, after inspecting hundreds of frames, losing track of which frame went with which hive is a near-certainty. 
+
+Thick gloves, balancing frames, bee smokers, and hive tools fill up a beekeepers hands, and a clipboard and pen (or tablet and stylus) would require two more. Having only two appendages, Mellifera is a project to solve this problem by leveraging natural language processing to update an extensive, and extensible, database with data about honeybee hives. 
 
 <!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
 
