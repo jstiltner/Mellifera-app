@@ -71,27 +71,17 @@
 
 
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
-
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `jstiltner`, `Mellifera-app`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `Mellifera`, `project_description`
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 ### Built With
 
-* [![Next][Next.js]][Next-url]
+<!-- * [![Next][Next.js]][Next-url] -->
 * [![React][React.js]][React-url]
-* [![Vue][Vue.js]][Vue-url]
+<!-- * [![Vue][Vue.js]][Vue-url] -->
 * [![MongoDB][MongoDB.js]][MongoDB-url]
 * [![Node.js][Node.js]][Nodejs-url]
 * [![Express][Express.js]][Express-url]
 <!-- * [![Angular][Angular.io]][Angular-url] -->
-* [![Svelte][Svelte.dev]][Svelte-url]
+<!-- * [![Svelte][Svelte.dev]][Svelte-url] -->
 <!-- * [![Laravel][Laravel.com]][Laravel-url] -->
 * [![Bootstrap][Bootstrap.com]][Bootstrap-url]
 <!-- * [![JQuery][JQuery.com]][JQuery-url] -->
@@ -103,12 +93,11 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
+Welcome to the very beginning of the Mellifera story. Bee nerdy.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
+Will update this when there's some thing to install.
 * npm
   ```sh
   npm install npm@latest -g
@@ -116,19 +105,19 @@ This is an example of how to list things you need to use the software and how to
 
 ### Installation
 
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
+<!-- 1. Get a free API Key at [https://example.com](https://example.com) -->
+1. Clone the repo
    ```sh
    git clone https://github.com/jstiltner/Mellifera-app.git
    ```
-3. Install NPM packages
+2. Install NPM packages
    ```sh
    npm install
    ```
-4. Enter your API in `config.js`
+<!-- 4. Enter your API in `config.js`
    ```js
    const API_KEY = 'ENTER YOUR API';
-   ```
+   ``` -->
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -224,7 +213,7 @@ Project Link: [https://github.com/jstiltner/Mellifera-app](https://github.com/js
 [license-shield]: https://img.shields.io/github/license/jstiltner/Mellifera-app.svg?style=for-the-badge
 [license-url]: https://github.com/jstiltner/Mellifera-app/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/linkedin_username
+[linkedin-url]: https://linkedin.com/in/jasonlstiltner
 [product-screenshot]: images/screenshot.png
 [Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
 [Next-url]: https://nextjs.org/
