@@ -22,13 +22,13 @@
 <br />
 <div align="center">
   <a href="https://github.com/jstiltner/Mellifera-app">
-    <img src="images/logo.webp" alt="Logo" width="80" height="80">
+    <img src="images/logo.webp" alt="Logo" width="500" height="232">
   </a>
 
-<h3 align="center">project_title</h3>
+<h3 align="center">Mellifera</h3>
 
   <p align="center">
-    project_description
+    A CRUD application built on the MERN stack, gentrified by LLM interfaces, bedazzled by ML.
     <br />
     <a href="https://github.com/jstiltner/Mellifera-app"><strong>Explore the docs »</strong></a>
     <br />
@@ -76,7 +76,7 @@
 
 [![Product Name Screen Shot][product-screenshot]](https://example.com)
 
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `jstiltner`, `Mellifera-app`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `project_title`, `project_description`
+Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `jstiltner`, `Mellifera-app`, `twitter_handle`, `linkedin_username`, `email_client`, `email`, `Mellifera`, `project_description`
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -242,5 +242,5 @@ Project Link: [https://github.com/jstiltner/Mellifera-app](https://github.com/js
 [Bootstrap-url]: https://getbootstrap.com
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
 [JQuery-url]: https://jquery.com 
-[Expressjs.com]:
-[Expressjs-url]:
+<!-- [Expressjs.com]:
+[Expressjs-url]: -->
