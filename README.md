@@ -77,9 +77,9 @@
 <!-- * [![Next][Next.js]][Next-url] -->
 * [![React][React.js]][React-url]
 <!-- * [![Vue][Vue.js]][Vue-url] -->
-* [![MongoDB][MongoDB.js]][MongoDB-url]
-* [![Node.js][Node.js]][Nodejs-url]
-* [![Express][Express.js]][Express-url]
+* [![MongoDB][MongoDB.com]][MongoDB-url]
+* [![Nodejs][Nodejs.org]][Nodejs-url]
+* [![Expressjs][Expressjs.com]][Expressjs-url]
 <!-- * [![Angular][Angular.io]][Angular-url] -->
 <!-- * [![Svelte][Svelte.dev]][Svelte-url] -->
 <!-- * [![Laravel][Laravel.com]][Laravel-url] -->
@@ -126,9 +126,11 @@ Will update this when there's some thing to install.
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Mellifera is designed to be a beekeeper's companion, to enable data-driven decision-making for beekeepers from beginners to commercial professionals. In the bee yard, after inspecting hundreds of frames, losing track of which frame went with which hive is a near-certainty. 
+Mellifera is designed to be a beekeeper's companion, to enable data-driven decision-making for beekeepers worldwide. In the bee yard, after inspecting hundreds of frames, losing track of which frame went with which hive is a near-certainty. 
 
-Thick gloves, balancing frames, bee smokers, and hive tools fill up a beekeepers hands, and a clipboard and pen (or tablet and stylus) would require two more. Having only two appendages, Mellifera is a project to solve this problem by leveraging natural language processing to update an extensive, and extensible, database with data about honeybee hives. 
+Thick gloves, balancing frames, bee smokers, and hive tools fill up a beekeepers hands, and a clipboard and pen (or tablet and stylus) would require two more. Man thus built Mellifera with his humble two appendages.
+
+Mellifera is a project to solve this problem by leveraging natural language processing to update an extensive, and extensible, database with data about honeybee hives. 
 
 <!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
 
@@ -139,7 +141,10 @@ Thick gloves, balancing frames, bee smokers, and hive tools fill up a beekeepers
 <!-- ROADMAP -->
 ## Roadmap
 
-- MVP - Web UI, DB, and basic reporting functionality
+- [ ] MVP 
+    - [ ] Web UI 
+    - [ ] DB 
+    - [ ] basic reporting functionality
 - [ ] "Hive Inspection Companion"
     - [ ] LLM Integration
     - [ ] NLP for inputs 
@@ -233,5 +238,9 @@ Project Link: [https://github.com/jstiltner/Mellifera-app](https://github.com/js
 [Bootstrap-url]: https://getbootstrap.com
 [JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
 [JQuery-url]: https://jquery.com 
-<!-- [Expressjs.com]:
-[Expressjs-url]: -->
+[Expressjs.com]: https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express&logocolor=white
+[Expressjs-url]: https://img.shields.io/badge/express--FFFFFF?style=for-the-badge&logo=express&logoColor=000000&labelColor=FFFFFF&color=FFFFFF
+[Nodejs.org]: https://img.shields.io/badge/nodejs-FFFFFF?style=for-the-badge&logo=node.js&logoColor=5FA04E
+[Nodejs-url]: https://nodejs.org
+[MongoDB.com]: https://img.shields.io/badge/mongodb-47A248?style=for-the-badge&logo=MongoDB&logoColor=47A248&labelColor=000000&color=47A248&
+[MongoDB-url]: https://mongodb.com
