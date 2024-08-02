@@ -2,3 +2,4 @@ node_modules
 .env
 mellifera/node_modules
 bin
+server/config/keys.js

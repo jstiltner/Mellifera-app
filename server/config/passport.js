@@ -43,6 +43,22 @@ passport.use(
   })
 );
 
+passport.use(new FacebookStrategy({
+  clientID: process.env.FACEBOOK_APP_ID,
+  clientSecret: process.env.FACEBOOK_APP_SECRET,
+  callbackURL: "http://localhost:5050/auth/facebook/callback",
+  passReqToCallback: true,
+  profileFields: ['id','displayName', 'emails']
+},
+async function(req, accessToken, refreshToken, profile, cb) {
+  await User.findOrCreate(profile, function (err, user, created) {
+    if (err) { return cb(err); }
+    console.log(created, profile); // Log the profile for debugging purposes
+    return cb(null, user);
+  });
+}
+));
+
 // Google OAuth Strategy
 passport.use(
   new GoogleStrategy(

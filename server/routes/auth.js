@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const { jwtSecret, jwtExpiration } = require('../config/keys');
 const auth = require('../middleware/auth');
 const User = require('../models/User')
+const findOrCreate = require('mongoose-findorcreate');
 // import User from '../models/User';
 
 const router = express.Router();
@@ -18,19 +19,23 @@ router.post('/register', async (req, res) => {
     const user = new User({ email, password });
     console.log('user is ', user);
     await user.save();
-    res.status(201).send('User registered');
+    // res.status(201).send('User registered');
+    res.redirect('newregistration.html')
   } catch (err) {
     res.status(400).send('Error registering user');
   }
 });
 
 router.post('/login', (req, res, next) => {
-  passport.authenticate('local', { session: false }, (err, user, info) => {
+  passport.authenticate('local', { 
+    successRedirect: ('/dashboard'),
+    failureRedirect:('/')}, 
+    (err, user, info) => {
     if (err || !user) {
       return res.status(400).json({ message: info ? info.message : 'Login failed' });
     }
 
-    req.login(user, { session: false }, (err) => {
+    req.login(user, (err) => {
       if (err) {
         return res.status(500).send(err);
       }
@@ -45,6 +50,17 @@ router.post('/login', (req, res, next) => {
 router.get('/me', auth, (req, res) => {
   res.json({ user: req.user });
 });
+
+router.get('/facebook',
+  passport.authenticate('facebook', {scope: ['email']}));
+
+router.get('/facebook/callback',
+  passport.authenticate('facebook', { failureRedirect: '/login' }),
+  function(req, res) {
+    // Successful authentication, redirect home.
+    // console.log("res.body begins here", res.body);
+    res.redirect('/');
+  });
 
 // Google OAuth Authentication
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));

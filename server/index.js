@@ -16,6 +16,22 @@ const passport = require('passport');
 const session = require('express-session');
 require('./config/passport'); // Initialize passport configuration
 
+const GoogleStrategy = require('passport-google-oauth2').Strategy;
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "http://www.example.com/auth/google/callback",
+    passReqToCallback: true
+  },
+  function(request, accessToken, refreshToken, profile, done) {
+    User.findOrCreate({ googleId: profile.id }, function (err, user) {
+      return done(err, user);
+    });
+  }
+));
+
+
 
 // mongoose.connect(MongoURL,  { useNewUrlParser: true, useUnifiedTopology: true });
 mongoose.connect(MongoURL);
