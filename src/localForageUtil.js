@@ -2,7 +2,7 @@ import localforage from 'localforage';
 
 // Initialize a specific instance of localforage if needed
 localforage.config({
-  name: 'myApp'
+  name: 'myApp',
 });
 
 const localForageUtil = {
@@ -18,7 +18,6 @@ const localForageUtil = {
   getItem: async (key) => {
     try {
       const value = await localforage.getItem(key);
-      console.log(`Data retrieved: ${key}`, value);
       return value;
     } catch (err) {
       console.error(`Error retrieving data for key ${key}:`, err);
@@ -42,7 +41,7 @@ const localForageUtil = {
     } catch (err) {
       console.error('Error clearing data:', err);
     }
-  }
+  },
 };
 
 export default localForageUtil;

@@ -3,21 +3,24 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const JwtStrategy = require('passport-jwt').Strategy;
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const FacebookStrategy = require('passport-facebook').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
 const bcrypt = require('bcryptjs');
+
 const User = require('../models/User');
 const { jwtSecret, googleClientID, googleClientSecret } = require('../config/keys');
+require('dotenv').config();
 
 // Local Strategy
 passport.use(
   new LocalStrategy({ usernameField: 'email' }, async (email, password, done) => {
     try {
       const user = await User.findOne({ email });
-      if (!user) return done(null, false, { message: 'Invalid credentials' });
-
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) return done(null, false, { message: 'Invalid credentials' });
-
+      if (!user) return done(null, false, { message: 'Invalid credentials1' });
+      bcrypt.compare(password, user.password, function (err, result) {
+        console.log('result -----> ', result);
+        if (result === false) return done(null, false, { message: 'Invalid credentials2' });
+      });
       return done(null, user);
     } catch (err) {
       return done(err);
@@ -43,21 +46,23 @@ passport.use(
   })
 );
 
-passport.use(new FacebookStrategy({
-  clientID: process.env.FACEBOOK_APP_ID,
-  clientSecret: process.env.FACEBOOK_APP_SECRET,
-  callbackURL: "http://localhost:5050/auth/facebook/callback",
-  passReqToCallback: true,
-  profileFields: ['id','displayName', 'emails']
-},
-async function(req, accessToken, refreshToken, profile, cb) {
-  await User.findOrCreate(profile, function (err, user, created) {
-    if (err) { return cb(err); }
-    console.log(created, profile); // Log the profile for debugging purposes
-    return cb(null, user);
-  });
-}
-));
+passport.use(
+  new FacebookStrategy(
+    {
+      clientID: process.env.FACEBOOK_APP_ID,
+      clientSecret: process.env.FACEBOOK_APP_SECRET,
+      callbackURL: 'http://localhost:5050/auth/facebook/callback',
+      profileFields: ['id', 'displayName', 'email'],
+    },
+    async function (accessToken, refreshToken, profile, cb) {
+      try {
+        await User.findOrCreate(profile, 'facebook', cb);
+      } catch (err) {
+        return cb(err);
+      }
+    }
+  )
+);
 
 // Google OAuth Strategy
 passport.use(
@@ -65,18 +70,13 @@ passport.use(
     {
       clientID: googleClientID,
       clientSecret: googleClientSecret,
-      callbackURL: '/api/auth/google/callback',
+      callbackURL: '/auth/google/callback',
     },
-    async (token, tokenSecret, profile, done) => {
+    async (accessToken, refreshToken, profile, cb) => {
       try {
-        let user = await User.findOne({ googleId: profile.id });
-        if (user) return done(null, user);
-
-        user = new User({ googleId: profile.id, email: profile.emails[0].value });
-        await user.save();
-        return done(null, user);
+        await User.findOrCreate(profile, 'google', cb);
       } catch (err) {
-        return done(err, false);
+        return cb(err);
       }
     }
   )
@@ -94,3 +94,5 @@ passport.deserializeUser(async (id, done) => {
     done(err, false);
   }
 });
+
+module.exports = passport;
