@@ -1,25 +1,5 @@
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
-<a id="readme-top"></a>
+# Mellifera
 
-<!-- PROJECT SHIELDS -->
-<!--
-*** I'm using markdown "reference style" links for readability.
-*** Reference links are enclosed in brackets [ ] instead of parentheses ( ).
-*** See the bottom of this document for the declaration of the reference variables
-*** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
-*** https://www.markdownguide.org/basic-syntax/#reference-style-links
--->
-[![Contributors][contributors-shield]][contributors-url]
-[![Forks][forks-shield]][forks-url]
-[![Stargazers][stars-shield]][stars-url]
-[![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-[![LinkedIn][linkedin-shield]][linkedin-url]
-
-
-
-<!-- PROJECT LOGO -->
-<br />
 <div align="center">
   <a href="https://github.com/jstiltner/Mellifera-app">
     <img src="images/logo.webp" alt="Logo" width="500" height="232">
@@ -28,7 +8,7 @@
 <h3 align="center">Mellifera</h3>
 
   <p align="center">
-    A CRUD application built on the MERN stack, gentrified by LLM interfaces, bedazzled by ML.
+    A CRUD application built on the MERN stack, enhanced with LLM interfaces and ML capabilities.
     <br />
     <a href="https://github.com/jstiltner/Mellifera-app"><strong>Explore the docs »</strong></a>
     <br />
@@ -41,124 +21,99 @@
   </p>
 </div>
 
+## Table of Contents
 
+- [About The Project](#about-the-project)
+  - [Built With](#built-with)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+- [Usage](#usage)
+- [Features](#features)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
+- [Contact](#contact)
 
-<!-- TABLE OF CONTENTS -->
-<details>
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#about-the-project">About The Project</a>
-      <ul>
-        <li><a href="#built-with">Built With</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
-  </ol>
-</details>
+## About The Project
 
-
-
+Mellifera is designed to be a beekeeper's companion, enabling data-driven decision-making for beekeepers worldwide. It leverages natural language processing to update an extensive, and extensible, database with data about honeybee hives.
 
 ### Built With
 
-<!-- * [![Next][Next.js]][Next-url] -->
-* [![React][React.js]][React-url]
-<!-- * [![Vue][Vue.js]][Vue-url] -->
-* [![MongoDB][MongoDB.com]][MongoDB-url]
-* [![Nodejs][Nodejs.org]][Nodejs-url]
-* [![Expressjs][Expressjs.com]][Expressjs-url]
-<!-- * [![Angular][Angular.io]][Angular-url] -->
-<!-- * [![Svelte][Svelte.dev]][Svelte-url] -->
-<!-- * [![Laravel][Laravel.com]][Laravel-url] -->
-* [![Bootstrap][Bootstrap.com]][Bootstrap-url]
-<!-- * [![JQuery][JQuery.com]][JQuery-url] -->
+- [![React][React.js]][React-url]
+- [![MongoDB][MongoDB.com]][MongoDB-url]
+- [![Nodejs][Nodejs.org]][Nodejs-url]
+- [![Expressjs][Expressjs.com]][Expressjs-url]
+- [![Bootstrap][Bootstrap.com]][Bootstrap-url]
+- [![TanStack Query][TanStack-Query]][TanStack-Query-url]
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- GETTING STARTED -->
 ## Getting Started
 
-Welcome to the very beginning of the Mellifera story. Bee nerdy.
+To get a local copy up and running, follow these simple steps.
 
 ### Prerequisites
 
-Will update this when there's some thing to install.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
+- Node.js (latest LTS version)
+- npm (comes with Node.js)
+- MongoDB
 
 ### Installation
 
-<!-- 1. Get a free API Key at [https://example.com](https://example.com) -->
 1. Clone the repo
    ```sh
    git clone https://github.com/jstiltner/Mellifera-app.git
    ```
-2. Install NPM packages
+2. Navigate to the project directory
+   ```sh
+   cd Mellifera-app
+   ```
+3. Install NPM packages
    ```sh
    npm install
    ```
-<!-- 4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ``` -->
+4. Create a `.env` file in the root directory and add your environment variables (e.g., MongoDB connection string, JWT secret)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+5. Start the development server
+   ```sh
+   npm run dev
+   ```
 
-
-
-<!-- USAGE EXAMPLES -->
 ## Usage
 
-Mellifera is designed to be a beekeeper's companion, to enable data-driven decision-making for beekeepers worldwide. In the bee yard, after inspecting hundreds of frames, losing track of which frame went with which hive is a near-certainty. 
+Mellifera allows beekeepers to easily record their observations and manage their hives hands-free using voice commands. The app is designed to be used in the field, where traditional input methods are impractical.
 
-Thick gloves, balancing frames, bee smokers, and hive tools fill up a beekeepers hands, and a clipboard and pen (or tablet and stylus) would require two more. Man thus built Mellifera with his humble two appendages.
+## Features
 
-Mellifera is a project to solve this problem by leveraging natural language processing to update an extensive, and extensible, database with data about honeybee hives. 
+### React Query Implementation
 
-<!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
+- Optimized data fetching with automatic caching and background updates
+- Seamless integration with our REST API
+- Improved performance and user experience with instant UI updates
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+### Voice Control
 
+- Speech recognition for voice commands
+- Natural Language Processing (NLP) for understanding complex instructions
+- Text-to-speech feedback for a fully hands-free experience
 
-
-<!-- ROADMAP -->
 ## Roadmap
 
-- [ ] MVP 
-    - [ ] Web UI 
-    - [ ] DB 
-    - [ ] basic reporting functionality
-- [ ] "Hive Inspection Companion"
-    - [ ] LLM Integration
-    - [ ] NLP for inputs 
-    - [ ] Audio output
+- [x] MVP
+  - [x] Web UI
+  - [x] DB
+  - [x] Basic reporting functionality
+- [x] "Hive Inspection Companion"
+  - [x] LLM Integration
+  - [x] NLP for inputs
+  - [x] Audio output
 - [ ] ML
-    - [ ] Build a self-inpromving model with data collected over time by userbase.
+  - [ ] Build a self-improving model with data collected over time by userbase
+- [ ] Mobile app development
+- [ ] Offline mode with data synchronization
 
 See the [open issues](https://github.com/jstiltner/Mellifera-app/issues) for a full list of proposed features (and known issues).
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- CONTRIBUTING -->
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -172,75 +127,26 @@ Don't forget to give the project a star! Thanks again!
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- LICENSE -->
 ## License
 
-Distributed under the GNU AFFERO Public License. See `LICENSE.txt` for more information.
+This project is proprietary software. All rights reserved. See `LICENSE.txt` for more information.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- CONTACT -->
 ## Contact
 
 Jason L Stiltner - [@jasonlstiltner](https://x.com/jasonlstiltner) - mr@jasonstiltner.com
 
 Project Link: [https://github.com/jstiltner/Mellifera-app](https://github.com/jstiltner/Mellifera-app)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- ACKNOWLEDGMENTS -->
-<!-- ## Acknowledgments
-
-* []()
-* []()
-* []()
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
-
-
-
 <!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/jstiltner/Mellifera-app.svg?style=for-the-badge
-[contributors-url]: https://github.com/jstiltner/Mellifera-app/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/jstiltner/Mellifera-app.svg?style=for-the-badge
-[forks-url]: https://github.com/jstiltner/Mellifera-app/network/members
-[stars-shield]: https://img.shields.io/github/stars/jstiltner/Mellifera-app.svg?style=for-the-badge
-[stars-url]: https://github.com/jstiltner/Mellifera-app/stargazers
-[issues-shield]: https://img.shields.io/github/issues/jstiltner/Mellifera-app.svg?style=for-the-badge
-[issues-url]: https://github.com/jstiltner/Mellifera-app/issues
-[license-shield]: https://img.shields.io/github/license/jstiltner/Mellifera-app.svg?style=for-the-badge
-[license-url]: https://github.com/jstiltner/Mellifera-app/blob/master/LICENSE.txt
-[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/jasonlstiltner
-[product-screenshot]: images/screenshot.png
-[Next.js]: https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white
-[Next-url]: https://nextjs.org/
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
 [React-url]: https://reactjs.org/
-[Vue.js]: https://img.shields.io/badge/Vue.js-35495E?style=for-the-badge&logo=vuedotjs&logoColor=4FC08D
-[Vue-url]: https://vuejs.org/
-[Angular.io]: https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white
-[Angular-url]: https://angular.io/
-[Svelte.dev]: https://img.shields.io/badge/Svelte-4A4A55?style=for-the-badge&logo=svelte&logoColor=FF3E00
-[Svelte-url]: https://svelte.dev/
-[Laravel.com]: https://img.shields.io/badge/Laravel-FF2D20?style=for-the-badge&logo=laravel&logoColor=white
-[Laravel-url]: https://laravel.com
 [Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
 [Bootstrap-url]: https://getbootstrap.com
-[JQuery.com]: https://img.shields.io/badge/jQuery-0769AD?style=for-the-badge&logo=jquery&logoColor=white
-[JQuery-url]: https://jquery.com 
 [Expressjs.com]: https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express&logocolor=white
-[Expressjs-url]: https://img.shields.io/badge/express--FFFFFF?style=for-the-badge&logo=express&logoColor=000000&labelColor=FFFFFF&color=FFFFFF
+[Expressjs-url]: https://expressjs.com
 [Nodejs.org]: https://img.shields.io/badge/nodejs-FFFFFF?style=for-the-badge&logo=node.js&logoColor=5FA04E
 [Nodejs-url]: https://nodejs.org
 [MongoDB.com]: https://img.shields.io/badge/mongodb-47A248?style=for-the-badge&logo=MongoDB&logoColor=47A248&labelColor=000000&color=47A248&
 [MongoDB-url]: https://mongodb.com
+[TanStack-Query]: https://img.shields.io/badge/TanStack%20Query-FF4154?style=for-the-badge&logo=reactquery&logoColor=white
+[TanStack-Query-url]: https://tanstack.com/query/latest

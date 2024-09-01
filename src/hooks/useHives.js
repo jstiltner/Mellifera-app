@@ -12,8 +12,15 @@ const fetchHive = async (hiveId) => {
 };
 
 const createHive = async ({ apiaryId, hiveData }) => {
-  const { data } = await axios.post(`/api/apiaries/${apiaryId}/hives`, hiveData);
-  return data;
+  console.log('Creating hive with data:', { apiaryId, hiveData });
+  try {
+    const { data } = await axios.post(`/api/apiaries/${apiaryId}/hives`, hiveData);
+    console.log('Hive created successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('Error creating hive:', error.response?.data || error.message);
+    throw error;
+  }
 };
 
 const addBox = async ({ hiveId, boxData }) => {
@@ -44,9 +51,14 @@ export const useCreateHive = () => {
   return useMutation({
     mutationFn: createHive,
     onSuccess: (data, { apiaryId }) => {
+      console.log('Hive created successfully, updating queries');
       queryClient.invalidateQueries({ queryKey: ['hives', apiaryId] });
       queryClient.invalidateQueries({ queryKey: ['apiaries'] });
       queryClient.invalidateQueries({ queryKey: ['hive'] });
+    },
+    onError: (error, variables) => {
+      console.error('Error in useCreateHive:', error.response?.data || error.message);
+      console.error('Variables passed to mutation:', variables);
     },
   });
 };

@@ -57,7 +57,11 @@ const HiveForm = ({ initialData, apiaries, onSubmit, onClose }) => {
         console.log('Calling onSubmit with:', data);
         onSubmit(data);
       }
-      onClose(); // Close the modal
+      if (typeof onClose === 'function') {
+        onClose(); // Close the modal only if onClose is a function
+      } else {
+        console.warn('onClose is not a function');
+      }
     },
     onError: (error) => {
       console.error('Mutation error:', error);
