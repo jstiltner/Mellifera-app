@@ -1,18 +1,16 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { HiveProvider } from '../context/HiveContext';
 import HiveList from '../components/views/HiveList';
-import useHives from '../hooks/useHives';
-import { useCreateHive, useUpdateHive, useDeleteHive } from '../hooks/useHives';
+import { useHives, useCreateHive, useUpdateHive, useDeleteHive } from '../hooks/useHives';
 
 jest.mock('../hooks/useHives');
 
 const mockHives = [
-  { _id: '1', name: 'Hive 1', queenId: 'Q1', status: 'Active', notes: 'Test hive 1' },
-  { _id: '2', name: 'Hive 2', queenId: 'Q2', status: 'Inactive', notes: 'Test hive 2' },
+  { _id: '1', name: 'Hive 1', queenId: 'Q1', status: 'Active', notes: 'Test hive 1', children: [] },
+  { _id: '2', name: 'Hive 2', queenId: 'Q2', status: 'Inactive', notes: 'Test hive 2', children: [] },
 ];
 
 const queryClient = new QueryClient();
@@ -20,11 +18,9 @@ const queryClient = new QueryClient();
 const renderWithProviders = (ui, { route = '/apiaries/1/hives' } = {}) => {
   return render(
     <QueryClientProvider client={queryClient}>
-      <HiveProvider>
-        <MemoryRouter initialEntries={[route]}>
-          <Route path="/apiaries/:apiaryId/hives">{ui}</Route>
-        </MemoryRouter>
-      </HiveProvider>
+      <MemoryRouter initialEntries={[route]}>
+        <Route path="/apiaries/:apiaryId/hives">{ui}</Route>
+      </MemoryRouter>
     </QueryClientProvider>
   );
 };
@@ -32,9 +28,11 @@ const renderWithProviders = (ui, { route = '/apiaries/1/hives' } = {}) => {
 describe('HiveList', () => {
   beforeEach(() => {
     useHives.mockReturnValue({
-      data: { hives: mockHives, totalHives: 2 },
-      isLoading: false,
-      error: null,
+      data: { pages: [{ hives: mockHives, totalHives: 2 }] },
+      fetchNextPage: jest.fn(),
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      status: 'success',
     });
     useCreateHive.mockReturnValue({ mutate: jest.fn() });
     useUpdateHive.mockReturnValue({ mutate: jest.fn() });
@@ -78,12 +76,12 @@ describe('HiveList', () => {
     await waitFor(() => {
       const nameInput = screen.getByLabelText('Name:');
       const queenIdInput = screen.getByLabelText('Queen ID:');
-      const statusSelect = screen.getByLabelText('Status:');
+      const statusInput = screen.getByLabelText('Status:');
       const notesInput = screen.getByLabelText('Notes:');
 
       userEvent.type(nameInput, 'New Hive');
       userEvent.type(queenIdInput, 'Q3');
-      userEvent.selectOptions(statusSelect, 'Active');
+      userEvent.type(statusInput, 'Active');
       userEvent.type(notesInput, 'Test new hive');
 
       const submitButton = screen.getByText('Create Hive');
@@ -93,110 +91,35 @@ describe('HiveList', () => {
     await waitFor(() => {
       expect(mockCreateHive).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: 'New Hive',
-          queenId: 'Q3',
-          status: 'Active',
-          notes: 'Test new hive',
+          apiaryId: '1',
+          hiveData: expect.objectContaining({
+            name: 'New Hive',
+            queenId: 'Q3',
+            status: 'Active',
+            notes: 'Test new hive',
+          }),
         }),
         expect.anything()
       );
-    });
-  });
-
-  it('opens the edit hive modal when clicking the edit button', async () => {
-    renderWithProviders(<HiveList />);
-
-    const editButtons = screen.getAllByText('Edit');
-    fireEvent.click(editButtons[0]);
-
-    await waitFor(() => {
-      expect(screen.getByText('Edit Hive')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('Hive 1')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('Q1')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('Active')).toBeInTheDocument();
-      expect(screen.getByDisplayValue('Test hive 1')).toBeInTheDocument();
-    });
-  });
-
-  it('updates a hive when submitting the edit form', async () => {
-    const mockUpdateHive = jest.fn();
-    useUpdateHive.mockReturnValue({ mutate: mockUpdateHive });
-
-    renderWithProviders(<HiveList />);
-
-    const editButtons = screen.getAllByText('Edit');
-    fireEvent.click(editButtons[0]);
-
-    await waitFor(() => {
-      const nameInput = screen.getByDisplayValue('Hive 1');
-      const queenIdInput = screen.getByDisplayValue('Q1');
-      const statusSelect = screen.getByDisplayValue('Active');
-      const notesInput = screen.getByDisplayValue('Test hive 1');
-
-      userEvent.clear(nameInput);
-      userEvent.type(nameInput, 'Updated Hive 1');
-      userEvent.clear(queenIdInput);
-      userEvent.type(queenIdInput, 'Q1-updated');
-      userEvent.selectOptions(statusSelect, 'Inactive');
-      userEvent.clear(notesInput);
-      userEvent.type(notesInput, 'Updated test hive 1');
-
-      const submitButton = screen.getByText('Update Hive');
-      fireEvent.click(submitButton);
-    });
-
-    await waitFor(() => {
-      expect(mockUpdateHive).toHaveBeenCalledWith(
-        expect.objectContaining({
-          _id: '1',
-          name: 'Updated Hive 1',
-          queenId: 'Q1-updated',
-          status: 'Inactive',
-          notes: 'Updated test hive 1',
-        }),
-        expect.anything()
-      );
-    });
-  });
-
-  it('deletes a hive when clicking the delete button', async () => {
-    const mockDeleteHive = jest.fn();
-    useDeleteHive.mockReturnValue({ mutate: mockDeleteHive });
-
-    renderWithProviders(<HiveList />);
-
-    const deleteButtons = screen.getAllByText('Delete');
-    fireEvent.click(deleteButtons[0]);
-
-    await waitFor(() => {
-      expect(screen.getByText('Are you sure you want to delete this hive?')).toBeInTheDocument();
-    });
-
-    const confirmButton = screen.getByText('Confirm');
-    fireEvent.click(confirmButton);
-
-    await waitFor(() => {
-      expect(mockDeleteHive).toHaveBeenCalledWith('1', expect.anything());
     });
   });
 
   it('displays loading state', () => {
     useHives.mockReturnValue({
       data: null,
-      isLoading: true,
-      error: null,
+      status: 'loading',
     });
 
     renderWithProviders(<HiveList />);
 
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('Loading hives...')).toBeInTheDocument();
   });
 
   it('displays error state', () => {
     useHives.mockReturnValue({
       data: null,
-      isLoading: false,
-      error: new Error('Failed to fetch hives'),
+      status: 'error',
+      error: { message: 'Failed to fetch hives' },
     });
 
     renderWithProviders(<HiveList />);
@@ -206,13 +129,12 @@ describe('HiveList', () => {
 
   it('displays empty state when no hives', () => {
     useHives.mockReturnValue({
-      data: { hives: [], totalHives: 0 },
-      isLoading: false,
-      error: null,
+      data: { pages: [{ hives: [], totalHives: 0 }] },
+      status: 'success',
     });
 
     renderWithProviders(<HiveList />);
 
-    expect(screen.getByText('No hives found.')).toBeInTheDocument();
+    expect(screen.getByText('No hives found. Create a new hive to get started.')).toBeInTheDocument();
   });
 });

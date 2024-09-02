@@ -2,9 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import nlp from 'compromise';
 import { useNavigate } from 'react-router-dom';
-import { useHiveContext } from '../context/HiveContext';
 import axios from 'axios';
 import useAudioFeedback from '../utils/audioFeedback';
+import { useCreateHive, useHives } from '../hooks/useHives';
 
 const VoiceCommander = () => {
   const [command, setCommand] = useState('');
@@ -14,7 +14,8 @@ const VoiceCommander = () => {
 
   const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
   const navigate = useNavigate();
-  const { addHive, apiaries } = useHiveContext();
+  const createHiveMutation = useCreateHive();
+  const { data: apiaries } = useHives();
   const { playSuccessSound, playErrorSound, playNotificationSound } = useAudioFeedback();
 
   useEffect(() => {
@@ -54,7 +55,12 @@ const VoiceCommander = () => {
 
       switch (action) {
         case 'addHive':
-          addHive({ name: 'New Voice Hive', apiaryId: apiaries[0]?.id });
+          if (apiaries && apiaries.length > 0) {
+            createHiveMutation.mutate({ 
+              apiaryId: apiaries[0]?._id, 
+              hiveData: { name: 'New Voice Hive' }
+            });
+          }
           playSuccessSound();
           break;
         case 'showApiaries':
@@ -94,7 +100,7 @@ const VoiceCommander = () => {
       sayCommand('Sorry, there was an error processing your command. Please try again.');
       playErrorSound();
     }
-  }, [navigate, addHive, apiaries, playSuccessSound, playErrorSound, playNotificationSound]);
+  }, [navigate, createHiveMutation, apiaries, playSuccessSound, playErrorSound, playNotificationSound]);
 
   useEffect(() => {
     if (transcript) {

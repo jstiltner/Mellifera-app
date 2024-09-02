@@ -5,6 +5,7 @@ import Button from '../Button';
 import AddBox from '../AddBox';
 import Modal from '../Modal';
 import { useHive, useAddBox } from '../../hooks/useHives';
+import { useInspections } from '../../hooks/useInspections';
 
 const HiveDetail = ({ label, value }) => (
   <div className="mb-2">
@@ -33,14 +34,25 @@ const HiveDetails = () => {
 
   const {
     data: hive,
-    isLoading,
-    isError,
-    error,
+    isLoading: isHiveLoading,
+    isError: isHiveError,
+    error: hiveError,
   } = useHive(id);
+
+  const {
+    data: inspections,
+    isLoading: isInspectionsLoading,
+    isError: isInspectionsError,
+    error: inspectionsError,
+    refetch: refetchInspections,
+  } = useInspections(id, {
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
 
   const addBoxMutation = useAddBox();
 
-  if (isLoading) {
+  if (isHiveLoading || isInspectionsLoading) {
     return (
       <div className="text-center py-4" aria-live="polite">
         Loading...
@@ -48,10 +60,10 @@ const HiveDetails = () => {
     );
   }
 
-  if (isError) {
+  if (isHiveError || isInspectionsError) {
     return (
       <div className="text-red-500 text-center py-4" aria-live="assertive">
-        Error: {error.message || 'An error occurred while fetching data. Please try again later.'}
+        Error: {(hiveError || inspectionsError)?.message || 'An error occurred while fetching data. Please try again later.'}
       </div>
     );
   }
@@ -102,7 +114,7 @@ const HiveDetails = () => {
           <ul className="list-disc pl-5 mb-4">
             {hive.children.map((box, index) => (
               <li key={box._id || index} className="mb-1">
-                Box {index + 1}: {box.type} ({box.frames} frames)
+                Box {box.boxNumber}: {box.type} ({box.frames} frames)
               </li>
             ))}
           </ul>
@@ -118,11 +130,19 @@ const HiveDetails = () => {
       </div>
 
       <div className="bg-white shadow-md rounded-lg p-6">
-        <h2 className="text-2xl font-semibold mb-4">Recent Inspections</h2>
-        {Array.isArray(hive.inspections) && hive.inspections.length > 0 ? (
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold">Recent Inspections</h2>
+          <Button
+            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+            onClick={() => refetchInspections()}
+          >
+            Refresh Inspections
+          </Button>
+        </div>
+        {Array.isArray(inspections) && inspections.length > 0 ? (
           <div>
-            {hive.inspections.map((inspection, index) => (
-              <InspectionDetail key={inspection._id || index} inspection={inspection} />
+            {inspections.map((inspection) => (
+              <InspectionDetail key={inspection._id} inspection={inspection} />
             ))}
           </div>
         ) : (

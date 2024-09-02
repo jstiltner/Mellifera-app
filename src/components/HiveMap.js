@@ -49,7 +49,7 @@ const HiveMap = () => {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {apiaries.map((apiary) => (
+      {Array.isArray(apiaries) && apiaries.map((apiary) => (
         <Marker key={apiary._id} position={[apiary.latitude, apiary.longitude]}>
           <Popup>
             <h3>{apiary.name}</h3>
@@ -59,7 +59,7 @@ const HiveMap = () => {
           </Popup>
         </Marker>
       ))}
-      {hives.map((hive) => (
+      {Array.isArray(hives) && hives.map((hive) => (
         <Marker
           key={hive._id}
           position={[hive.lat, hive.lng]}

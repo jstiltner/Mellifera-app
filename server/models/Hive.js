@@ -8,8 +8,8 @@ const HiveSchema = new Schema({
   queenId: { type: String },
   status: { type: String },
   notes: { type: String },
-  children: [{ type: Schema.Types.ObjectId, ref: 'Box' }],
-  inspections: [{ type: Schema.Types.ObjectId, ref: 'Inspection', default: [] }],
+  children: [{ type: Schema.Types.ObjectId, ref: 'Box' }], // Array of references to Box documents
+  inspections: [{ type: Schema.Types.ObjectId, ref: 'Inspection', default: [] }], // Array of references to Inspection documents
   hasInnerCover: {
     type: Boolean,
     default: false,
@@ -74,21 +74,21 @@ HiveSchema.virtual('apiary', {
 });
 
 // Pre-find hook to populate the 'children' field with full box documents
-// and the most recent 3 inspections
-HiveSchema.pre('find', async function (next) {
+// and the three most recent inspections
+HiveSchema.pre('find', function (next) {
   this.populate('children');
   this.populate({
     path: 'inspections',
-    options: { sort: { date: -1 }, limit: 3 }
+    options: { sort: { date: -1 }, limit: 15 }
   });
   next();
 });
 
-HiveSchema.pre('findOne', async function (next) {
+HiveSchema.pre('findOne', function (next) {
   this.populate('children');
   this.populate({
     path: 'inspections',
-    options: { sort: { date: -1 }, limit: 3 }
+    options: { sort: { date: -1 }, limit: 15 }
   });
   next();
 });

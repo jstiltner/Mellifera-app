@@ -59,7 +59,7 @@ const Inspection = require('../models/Inspection');
  *       400:
  *         description: Bad request
  */
-router.post('/:hiveId/inspections', auth, async (req, res) => {
+router.post('hives/:hiveId/inspections', auth, async (req, res) => {
   try {
     const { hiveId } = req.params;
     const inspectionData = req.body;
@@ -110,6 +110,54 @@ router.post('/:hiveId/inspections', auth, async (req, res) => {
   } catch (error) {
     console.error('Error in inspection creation:', error);
     res.status(400).json({ message: 'Error creating inspection', error: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/hives/{hiveId}/inspections:
+ *   get:
+ *     summary: Get inspections for a specific hive
+ *     tags: [Inspections]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: hiveId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of inspections for the hive
+ *       404:
+ *         description: Hive not found or unauthorized
+ *       400:
+ *         description: Bad request
+ */
+router.get('/:hiveId/inspections', auth, async (req, res) => {
+  try {
+    const { hiveId } = req.params;
+
+    if (!hiveId) {
+      return res.status(400).json({ message: 'Hive ID is required' });
+    }
+
+    const hive = await Hive.findOne({
+      _id: hiveId,
+      parent: { $in: await Apiary.find({ parent: req.user }).distinct('_id') },
+    });
+
+    if (!hive) {
+      return res.status(404).json({ message: 'Hive not found or unauthorized' });
+    }
+
+    const inspections = await Inspection.find({ hive: hiveId }).sort({ date: -1 });
+
+    res.status(200).json(inspections);
+  } catch (error) {
+    console.error('Error fetching inspections:', error);
+    res.status(400).json({ message: 'Error fetching inspections', error: error.message });
   }
 });
 

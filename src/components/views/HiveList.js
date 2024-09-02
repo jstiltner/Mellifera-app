@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useHiveContext } from '../../context/HiveContext';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
+import { useHives, useCreateHive } from '../../hooks/useHives';
 import HiveForm from './HiveForm';
 import Modal from '../Modal';
 
@@ -10,27 +10,18 @@ const HIVES_PER_PAGE = 10;
 
 const HiveList = () => {
   const { apiaryId } = useParams();
-  const { useHives, useCreateHive, addHive } = useHiveContext();
   const queryClient = useQueryClient();
   const { ref, inView } = useInView();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const fetchHives = async ({ pageParam = 1 }) => {
-    const response = await fetch(`/api/hives?apiaryId=${apiaryId}&page=${pageParam}&limit=${HIVES_PER_PAGE}`);
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return response.json();
-  };
-
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useInfiniteQuery(
-    ['hives', apiaryId],
-    fetchHives,
-    {
-      getNextPageParam: (lastPage) =>
-        lastPage.currentPage < lastPage.totalPages ? lastPage.currentPage + 1 : undefined,
-    }
-  );
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    status,
+    refetch
+  } = useHives(apiaryId);
 
   React.useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
@@ -40,13 +31,23 @@ const HiveList = () => {
 
   const createHiveMutation = useCreateHive();
 
-  const handleCreateHive = (hiveData) => {
-    createHiveMutation.mutate(hiveData, {
-      onSuccess: (newHive) => {
-        addHive(newHive);
-        setIsModalOpen(false);
-      },
-    });
+  const handleCreateHive = async (hiveData) => {
+    try {
+      await createHiveMutation.mutateAsync(
+        { apiaryId, hiveData },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries(['hives', apiaryId]);
+            queryClient.invalidateQueries(['apiaries']);
+            refetch();
+            setIsModalOpen(false);
+          },
+        }
+      );
+    } catch (error) {
+      console.error('Error creating hive:', error);
+      // Handle error (e.g., show error message to user)
+    }
   };
 
   if (status === 'loading') {
@@ -81,7 +82,7 @@ const HiveList = () => {
       </div>
       {hives.length > 0 ? (
         <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" role="list">
-          {hives.map((hive) => (
+          {Array.isArray(hives) && hives.map((hive) => (
             <li
               key={hive._id}
               className="border rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-200"

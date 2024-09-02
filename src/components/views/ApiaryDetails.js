@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
 import Button from '../Button';
 import Modal from '../Modal';
 import HiveForm from './HiveForm';
 import { useAuthContext } from '../../context/AuthContext';
 import { useApiaries } from '../../hooks/useApiaries';
-import { useCreateHive } from '../../hooks/useHives';
+import { useHives, useCreateHive } from '../../hooks/useHives';
 
 const ApiaryDetails = () => {
   const { id: apiaryId } = useParams();
@@ -14,16 +14,15 @@ const ApiaryDetails = () => {
   const queryClient = useQueryClient();
   const { token } = useAuthContext();
 
-  const { data: apiaries, isLoading, isError } = useApiaries();
-  const apiary = apiaries?.find(a => a._id === apiaryId);
-
+  const { data: apiaries, isLoading: isApiariesLoading, isError: isApiariesError } = useApiaries();
+  const { data: hives, isLoading: isHivesLoading, isError: isHivesError } = useHives(apiaryId);
   const createHiveMutation = useCreateHive();
 
-  if (isLoading) return <div className="text-center p-4">Loading apiary details...</div>;
-  if (isError)
-    return <div className="text-center p-4 text-red-500">Error fetching apiary details</div>;
-  if (!apiary)
-    return <div className="text-center p-4 text-red-500">Apiary not found</div>;
+  const apiary = apiaries?.find(a => a._id === apiaryId);
+
+  if (isApiariesLoading || isHivesLoading) return <div className="text-center p-4">Loading apiary details...</div>;
+  if (isApiariesError || isHivesError) return <div className="text-center p-4 text-red-500">Error fetching apiary details</div>;
+  if (!apiary) return <div className="text-center p-4 text-red-500">Apiary not found</div>;
 
   const handleAddHive = () => {
     setIsHiveFormOpen(true);
@@ -31,64 +30,58 @@ const ApiaryDetails = () => {
 
   const handleHiveSubmit = (hiveData) => {
     createHiveMutation.mutate(
-      { ...hiveData, apiaryId },
+      { apiaryId, hiveData },
       {
-        onSuccess: (newHive) => {
-          // Update the local cache immediately
-          queryClient.setQueryData(['apiaries'], (oldData) => {
-            return oldData.map(oldApiary => 
-              oldApiary._id === apiaryId 
-                ? { ...oldApiary, children: [...(oldApiary.children || []), newHive] }
-                : oldApiary
-            );
-          });
-
-          // Invalidate and refetch to ensure consistency with the server
-          queryClient.invalidateQueries(['apiaries']);
-          
+        onSuccess: () => {
           setIsHiveFormOpen(false);
         },
       }
     );
   };
 
+  const handleCloseModal = () => {
+    setIsHiveFormOpen(false);
+  };
+
   return (
-    <div className="bg-white shadow-lg rounded-lg p-6 m-4 max-w-4xl mx-auto">
-      <h2 className="text-3xl font-bold mb-6 text-indigo-700">
-        {apiary?.name || 'Unnamed Apiary'}
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className="bg-gray-50 p-4 rounded-md shadow">
-          <p className="mb-2">
-            <span className="font-semibold text-gray-700">Location:</span>{' '}
-            {apiary?.location || 'N/A'}
-          </p>
-          <p>
-            <span className="font-semibold text-gray-700">Total Hives:</span>{' '}
-            {apiary?.children?.length || 0}
-          </p>
+    <div className="bg-white shadow-lg rounded-lg p-6 m-4 max-w-4xl mx-auto flex flex-col h-[calc(100vh-2rem)]">
+      <div className="flex-shrink-0">
+        <h2 className="text-3xl font-bold mb-6 text-indigo-700">
+          {apiary?.name || 'Unnamed Apiary'}
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="bg-gray-50 p-4 rounded-md shadow">
+            <p className="mb-2">
+              <span className="font-semibold text-gray-700">Location:</span>{' '}
+              {apiary?.location || 'N/A'}
+            </p>
+            <p>
+              <span className="font-semibold text-gray-700">Total Hives:</span>{' '}
+              {hives?.length || 0}
+            </p>
+          </div>
+          <div className="bg-gray-50 p-4 rounded-md shadow">
+            <p className="mb-2">
+              <span className="font-semibold text-gray-700">Created:</span>{' '}
+              {apiary?.createdAt ? new Date(apiary.createdAt).toLocaleDateString() : 'N/A'}
+            </p>
+            <p>
+              <span className="font-semibold text-gray-700">Last Updated:</span>{' '}
+              {apiary?.updatedAt ? new Date(apiary.updatedAt).toLocaleDateString() : 'N/A'}
+            </p>
+          </div>
         </div>
-        <div className="bg-gray-50 p-4 rounded-md shadow">
-          <p className="mb-2">
-            <span className="font-semibold text-gray-700">Created:</span>{' '}
-            {apiary?.createdAt ? new Date(apiary.createdAt).toLocaleDateString() : 'N/A'}
-          </p>
-          <p>
-            <span className="font-semibold text-gray-700">Last Updated:</span>{' '}
-            {apiary?.updatedAt ? new Date(apiary.updatedAt).toLocaleDateString() : 'N/A'}
-          </p>
-        </div>
+        <Button onClick={handleAddHive} className="w-full md:w-auto mb-6">
+          Add Hive
+        </Button>
       </div>
-      <Button onClick={handleAddHive} className="w-full md:w-auto mb-6">
-        Add Hive
-      </Button>
-      <div className="mt-8">
+      <div className="flex-grow overflow-y-auto">
         <h3 className="text-2xl font-semibold mb-4 text-indigo-600">Hives</h3>
-        {!apiary?.children || apiary.children.length === 0 ? (
+        {!hives || hives.length === 0 ? (
           <p className="text-gray-600 italic">No hives in this apiary yet.</p>
         ) : (
           <ul className="space-y-4">
-            {apiary.children.map((hive) => (
+            {Array.isArray(hives) && hives.map((hive) => (
               <li
                 key={hive?._id}
                 className="border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300"
@@ -127,11 +120,11 @@ const ApiaryDetails = () => {
           </ul>
         )}
       </div>
-      <Modal isOpen={isHiveFormOpen} onClose={() => setIsHiveFormOpen(false)}>
+      <Modal isOpen={isHiveFormOpen} onClose={handleCloseModal}>
         <HiveForm
           onSubmit={handleHiveSubmit}
-          initialData={{ apiaryId: apiaryId }}
-          apiaries={[apiary]}
+          onClose={handleCloseModal}
+          apiaryId={apiaryId}
         />
       </Modal>
     </div>

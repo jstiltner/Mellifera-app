@@ -4,3 +4,4 @@ mellifera/node_modules
 bin
 server/config/keys.js
 dist/
+./coverage/

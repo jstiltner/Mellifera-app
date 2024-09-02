@@ -73,10 +73,9 @@ const ApiaryMap = () => {
   if (isLoading) return <div>Loading map...</div>;
   if (error) return <div>Error loading map: {error.message}</div>;
 
-  const centerCoords =
-    apiaries && apiaries.length > 0
-      ? [apiaries[0].latitude || 0, apiaries[0].longitude || 0]
-      : [0, 0];
+  const centerCoords = apiaries?.[0]
+    ? [apiaries[0].latitude ?? 0, apiaries[0].longitude ?? 0]
+    : [0, 0];
 
   return (
     <div style={{ height: '300px', width: '100%', position: 'relative' }}>
@@ -86,49 +85,50 @@ const ApiaryMap = () => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {Array.isArray(apiaries) &&
-          apiaries.map(
-            (apiary) =>
-              apiary.latitude != null &&
-              apiary.longitude != null && (
-                <Marker key={apiary._id} position={[apiary.latitude, apiary.longitude]}>
-                  <Popup>
-                    <h3>{apiary.name}</h3>
-                  </Popup>
-                  {Array.isArray(apiary.hives) &&
-                    apiary.hives.map(
-                      (hive) =>
-                        hive.latitude != null &&
-                        hive.longitude != null && (
-                          <Marker
-                            key={hive._id}
-                            position={[hive.latitude, hive.longitude]}
-                            draggable
-                            onDragStart={() => handleHiveDragStart(hive)}
-                            onDragEnd={handleHiveDragEnd}
-                          >
-                            <Popup>
-                              <h4>{hive.name}</h4>
-                              {Array.isArray(hive.boxes) &&
-                                hive.boxes.map((box) => (
-                                  <Marker
-                                    key={box._id}
-                                    position={[box.latitude, box.longitude]}
-                                    draggable
-                                    onDragStart={() => handleBoxDragStart(hive, box)}
-                                    onDragEnd={handleBoxDragEnd}
-                                  >
-                                    <Popup>
-                                      <h5>Box {box.number}</h5>
-                                    </Popup>
-                                  </Marker>
-                                ))}
-                            </Popup>
-                          </Marker>
-                        )
-                    )}
-                </Marker>
-              )
-          )}
+          apiaries.map((apiary) => {
+            if (apiary.latitude == null || apiary.longitude == null) return null;
+            return (
+              <Marker key={apiary._id} position={[apiary.latitude, apiary.longitude]}>
+                <Popup>
+                  <h3>{apiary.name}</h3>
+                </Popup>
+                {Array.isArray(apiary.hives) &&
+                  apiary.hives.map((hive) => {
+                    if (hive.latitude == null || hive.longitude == null) return null;
+                    return (
+                      <Marker
+                        key={hive._id}
+                        position={[hive.latitude, hive.longitude]}
+                        draggable
+                        onDragStart={() => handleHiveDragStart(hive)}
+                        onDragEnd={handleHiveDragEnd}
+                      >
+                        <Popup>
+                          <h4>{hive.name}</h4>
+                          {Array.isArray(hive.boxes) &&
+                            hive.boxes.map((box) => {
+                              if (box.latitude == null || box.longitude == null) return null;
+                              return (
+                                <Marker
+                                  key={box._id}
+                                  position={[box.latitude, box.longitude]}
+                                  draggable
+                                  onDragStart={() => handleBoxDragStart(hive, box)}
+                                  onDragEnd={handleBoxDragEnd}
+                                >
+                                  <Popup>
+                                    <h5>Box {box.number}</h5>
+                                  </Popup>
+                                </Marker>
+                              );
+                            })}
+                        </Popup>
+                      </Marker>
+                    );
+                  })}
+              </Marker>
+            );
+          })}
       </MapContainer>
     </div>
   );

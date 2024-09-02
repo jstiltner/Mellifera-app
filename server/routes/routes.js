@@ -627,7 +627,7 @@ router.post('/boxes/:id', auth, async (req, res) => {
  *       400:
  *         description: Bad request
  */
-router.post('/api/hives', auth, async (req, res) => {
+router.post('/hives', auth, async (req, res) => {
   try {
     const { apiaryId, ...hiveData } = req.body;
 

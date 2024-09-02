@@ -145,7 +145,7 @@ router.get('/:id', auth, async (req, res) => {
  *                 type: string
  *               location:
  *                 type: string
- *               boxes:
+ *               children:
  *                 type: array
  *                 items:
  *                   type: object
@@ -164,7 +164,7 @@ router.get('/:id', auth, async (req, res) => {
  */
 router.post('/', auth, async (req, res) => {
   try {
-    const { apiaryId, location, boxes, ...otherHiveData } = req.body;
+    const { apiaryId, location, children, ...otherHiveData } = req.body;
 
     // Check if the apiary exists and belongs to the user
     const apiary = await Apiary.findOne({ _id: apiaryId, parent: req.user });
@@ -173,12 +173,12 @@ router.post('/', auth, async (req, res) => {
     }
 
     // Validate required fields
-    if (!boxes || boxes.length === 0) {
+    if (!children || children.length === 0) {
       return res.status(400).json({ message: 'Name and at least one box are required' });
     }
 
     const newHive = new Hive({
-      boxes,
+      children,
       location,
       ...otherHiveData,
       parent: apiaryId,
@@ -283,6 +283,81 @@ router.delete('/:id', auth, async (req, res) => {
     res.json({ message: 'Hive deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/hives:
+ *   post:
+ *     summary: Create new hive
+ *     tags: [Hives]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               hiveId:
+ *                 type: string
+ *               apiaryId:
+ *                 type: string
+ *               name:
+ *                 type: string
+ *               location:
+ *                 type: string
+ *               children:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     type:
+ *                       type: string
+ *                     frames:
+ *                       type: number
+ *     responses:
+ *       201:
+ *         description: Hive created successfully
+ *       404:
+ *         description: Apiary not found or unauthorized
+ *       400:
+ *         description: Bad request
+ */
+router.post('/', auth, async (req, res) => {
+  try {
+    const { hiveId, apiaryId, location, children, ...otherHiveData } = req.body;
+
+    // Check if the apiary exists and belongs to the user
+    const apiary = await Apiary.findOne({ _id: apiaryId, parent: req.user });
+    if (!apiary) {
+      return res.status(404).json({ message: 'Apiary not found or unauthorized' });
+    }
+
+    // Validate required fields
+    if (!children || children.length === 0) {
+      return res.status(400).json({ message: 'Name and at least one box are required' });
+    }
+
+    const newHive = new Hive({
+      _id: hiveId, // Use the provided hiveId
+      children,
+      location,
+      ...otherHiveData,
+      parent: apiaryId,
+    });
+
+    const savedHive = await newHive.save();
+
+    // Update the apiary's children array
+    apiary.children.push(savedHive._id);
+    await apiary.save();
+
+    res.status(201).json(savedHive);
+  } catch (error) {
+    res.status(400).json({ message: error.message });
   }
 });
 

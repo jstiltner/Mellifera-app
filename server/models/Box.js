@@ -5,10 +5,11 @@ const { Schema } = mongoose;
 
 const BoxSchema = new Schema({
   ...sharedSchema.tree,
-  fromChild: Boolean,
-  boxNumber: { type: String, required: false, unique: true },
-  parentHive: Schema.Types.ObjectId,
-  childFrames: [Schema.Types.ObjectId],
+  boxNumber: { type: Number, required: false },
+  type: { type: String, required: false, enum: ['brood', 'honey'] },
+  frames: { type: Number, required: false },
+  parentHive: { type: Schema.Types.ObjectId, ref: 'Hive' },
+  childFrames: [{ type: Schema.Types.ObjectId, ref: 'Frame' }],
   updated: { type: Date, default: Date.now },
   broodFrameCount: { type: Number },
   cappedBroodFrameCount: { type: Number },
@@ -17,8 +18,23 @@ const BoxSchema = new Schema({
   pollenFrameCount: { type: Number },
   beeBreadFrameCount: { type: Number },
   beeSleeveCount: { type: Number },
-  frameCount: { type: Number },
   droneCombToFreeze: { type: Number },
+  
+  // Additional fields from HiveDetails and ApiaryDetails
+  name: { type: String },
+  status: { type: String },
+  queenPresent: { type: Boolean },
+  location: { type: String },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+  queenId: { type: String },
+  lastInspection: { type: Date },
+});
+
+// Update the updatedAt field on save
+BoxSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
 });
 
 const Box = mongoose.model('Box', BoxSchema);

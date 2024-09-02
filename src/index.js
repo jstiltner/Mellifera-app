@@ -6,7 +6,6 @@ import Reports from './components/Reports';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
-import { HiveProvider } from './context/HiveContext';
 import localForageUtil from './localForageUtil';
 import './styles/tailwind.css';
 import ApiaryDetails from './components/views/ApiaryDetails';
@@ -86,60 +85,58 @@ const AppWithProviders = () => {
     <ErrorBoundary>
       <AuthProvider>
         <AuthenticatedQueryClientProvider>
-          <HiveProvider>
-            <Router>
-              <div className="min-h-screen bg-hive-light">
-                {!isOnline && (
-                  <div className="bg-yellow-500 text-white p-2 text-center">
-                    You are currently offline. Some features may be limited.
-                  </div>
-                )}
-                <Routes>
-                  <Route path="/login" element={<Login />} />
-                  <Route
-                    path="/"
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard isOnline={isOnline} />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/reports"
-                    element={
-                      <ProtectedRoute>
-                        <Reports isOnline={isOnline} />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/apiary/:id"
-                    element={
-                      <ProtectedRoute>
-                        <ApiaryDetails isOnline={isOnline}/>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/hives/:id"
-                    element={
-                      <ProtectedRoute>
-                        <HiveDetails isOnline={isOnline}/>
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/hives/:id/add-inspection"
-                    element={
-                      <ProtectedRoute>
-                        <InspectionForm isOnline={isOnline}/>
-                      </ProtectedRoute>
-                    }
-                  />
-                </Routes>
-              </div>
-            </Router>
-          </HiveProvider>
+          <Router>
+            <div className="min-h-screen bg-hive-light">
+              {!isOnline && (
+                <div className="bg-yellow-500 text-white p-2 text-center">
+                  You are currently offline. Some features may be limited.
+                </div>
+              )}
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard isOnline={isOnline} />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/reports"
+                  element={
+                    <ProtectedRoute>
+                      <Reports isOnline={isOnline} />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/apiary/:id"
+                  element={
+                    <ProtectedRoute>
+                      <ApiaryDetails isOnline={isOnline}/>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/hives/:id"
+                  element={
+                    <ProtectedRoute>
+                      <HiveDetails isOnline={isOnline}/>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/hives/:id/add-inspection"
+                  element={
+                    <ProtectedRoute>
+                      <InspectionForm isOnline={isOnline}/>
+                    </ProtectedRoute>
+                  }
+                />
+              </Routes>
+            </div>
+          </Router>
         </AuthenticatedQueryClientProvider>
       </AuthProvider>
     </ErrorBoundary>

@@ -1,167 +1,105 @@
-import React, { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import Button from '../Button';
 import { useAuthContext } from '../../context/AuthContext';
 import { sanitizeInput } from '../../utils/validation.ts';
+import { useCreateHive, useUpdateHive } from '../../hooks/useHives';
+import { useCreateBox } from '../../hooks/useBoxes';
 
-const saveHive = async (hiveData, token) => {
-  console.log('saveHive called with:', hiveData, token);
-  const url = hiveData._id ? `/api/hives/${hiveData._id}` : '/api/hives';
-  const method = hiveData._id ? 'PUT' : 'POST';
-
-  const response = await fetch(url, {
-    method: method,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(hiveData),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to ${hiveData._id ? 'update' : 'create'} hive`);
-  }
-
-  return response.json();
-};
-
-const HiveForm = ({ initialData, apiaries, onSubmit, onClose }) => {
-  console.log('HiveForm rendered with props:', { initialData, apiaries, onSubmit, onClose });
+const HiveForm = ({ initialData, apiaryId, onClose }) => {
   const { token } = useAuthContext();
   const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState({
     name: '',
-    parent: '',
     queenId: '',
     status: '',
     notes: '',
-    boxes: [],
+    children: [],
     ...(initialData || {}),
   });
 
-  const [newBox, setNewBox] = useState({ boxNumber: '', frames: 10 });
+  const [newBox, setNewBox] = useState({ boxNumber: '', type: '', frames: 10 });
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    console.log('formData updated:', formData);
-  }, [formData]);
-
-  const mutation = useMutation({
-    mutationFn: (hiveData) => saveHive(hiveData, token),
-    onSuccess: (data) => {
-      console.log('Mutation success:', data);
-      queryClient.invalidateQueries({ queryKey: ['apiaries'] });
-      queryClient.invalidateQueries({ queryKey: ['hives'] });
-      if (onSubmit) {
-        console.log('Calling onSubmit with:', data);
-        onSubmit(data);
-      }
-      if (typeof onClose === 'function') {
-        onClose(); // Close the modal only if onClose is a function
-      } else {
-        console.warn('onClose is not a function');
-      }
-    },
-    onError: (error) => {
-      console.error('Mutation error:', error);
-      console.error('Error stack:', error.stack);
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-      }
-    },
-    onMutate: async (newHive) => {
-      console.log('onMutate called with:', newHive);
-      await queryClient.cancelQueries({ queryKey: ['hives'] });
-      await queryClient.cancelQueries({ queryKey: ['apiaries'] });
-
-      const previousHives = queryClient.getQueryData(['hives']) || [];
-      const previousApiaries = queryClient.getQueryData(['apiaries']) || [];
-
-      queryClient.setQueryData(['hives'], (old) => {
-        console.log('Current hives data:', old);
-        return Array.isArray(old) ? [...old, newHive] : [newHive];
-      });
-
-      queryClient.setQueryData(['apiaries'], (old) => {
-        console.log('Current apiaries data:', old);
-        return Array.isArray(old) 
-          ? old.map((apiary) =>
-              apiary._id === newHive.parent
-                ? { ...apiary, children: [...(apiary.children || []), newHive] }
-                : apiary
-            )
-          : [{ _id: newHive.parent, children: [newHive] }];
-      });
-
-      return { previousHives, previousApiaries };
-    },
-    onError: (err, newHive, context) => {
-      console.error('Mutation error:', err);
-      queryClient.setQueryData(['hives'], context.previousHives);
-      queryClient.setQueryData(['apiaries'], context.previousApiaries);
-    },
-    onSettled: () => {
-      console.log('Mutation settled');
-      queryClient.invalidateQueries({ queryKey: ['hives'] });
-      queryClient.invalidateQueries({ queryKey: ['apiaries'] });
-    },
-  });
+  const createHiveMutation = useCreateHive();
+  const updateHiveMutation = useUpdateHive();
+  const createBoxMutation = useCreateBox();
 
   const validateForm = () => {
-    console.log('validateForm called');
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required";
-    if (!formData.parent) newErrors.parent = "Apiary is required";
+    if (formData.children.length === 0) newErrors.children = "At least one box is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e) => {
-    console.log('handleChange called:', e.target.name, e.target.value);
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: sanitizeInput(value) });
+    setFormData((prev) => ({ ...prev, [name]: sanitizeInput(value) }));
     setErrors((prevErrors) => ({ ...prevErrors, [name]: null }));
   };
 
   const handleBoxChange = (e) => {
-    console.log('handleBoxChange called:', e.target.name, e.target.value);
-    setNewBox({ ...newBox, [e.target.name]: sanitizeInput(e.target.value) });
+    const { name, value } = e.target;
+    setNewBox((prev) => ({
+      ...prev,
+      [name]: name === 'frames' ? parseInt(value, 10) : sanitizeInput(value),
+    }));
   };
 
   const addBox = () => {
-    console.log('addBox called');
-    if (newBox.boxNumber && newBox.frames) {
+    if (newBox.boxNumber && newBox.type) {
       setFormData((prevData) => ({
         ...prevData,
-        boxes: [...(prevData.boxes || []), newBox],
+        children: [...prevData.children, newBox],
       }));
-      setNewBox({ boxNumber: '', frames: 10 });
+      setNewBox({ boxNumber: '', type: '', frames: 10 });
+      setErrors((prevErrors) => ({ ...prevErrors, children: null }));
     }
   };
 
   const removeBox = (index) => {
-    console.log('removeBox called with index:', index);
     setFormData((prevData) => ({
       ...prevData,
-      boxes: (prevData.boxes || []).filter((_, i) => i !== index),
+      children: prevData.children.filter((_, i) => i !== index),
     }));
   };
 
-  const handleSubmit = (e) => {
-    console.log('handleSubmit called');
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      const hiveData = {
-        ...formData,
-        boxes: formData.boxes.map((box) => ({
-          ...box,
-          boxNumber: parseInt(box.boxNumber),
-          frames: parseInt(box.frames),
-        })),
-      };
-      console.log('Submitting hiveData:', hiveData);
-      mutation.mutate(hiveData);
+      try {
+        // Create Box documents first
+        const boxPromises = formData.children.map(box => 
+          createBoxMutation.mutateAsync({
+            boxNumber: parseInt(box.boxNumber),
+            type: box.type,
+            frames: parseInt(box.frames),
+          })
+        );
+        const createdBoxes = await Promise.all(boxPromises);
+
+        // Prepare hive data with box ObjectIds
+        const hiveData = {
+          ...formData,
+          children: createdBoxes.map(box => box._id),
+        };
+
+        const mutationFn = formData._id ? updateHiveMutation : createHiveMutation;
+        
+        await mutationFn.mutateAsync(
+          formData._id ? { hiveId: formData._id, hiveData } : { apiaryId, hiveData },
+          {
+            onSuccess: () => {
+              onClose();
+            },
+          }
+        );
+      } catch (error) {
+        console.error('Error saving hive:', error);
+        setErrors((prevErrors) => ({ ...prevErrors, submit: error.message }));
+      }
     }
   };
 
@@ -183,29 +121,6 @@ const HiveForm = ({ initialData, apiaries, onSubmit, onClose }) => {
           }`}
         />
         {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
-      </div>
-      <div>
-        <label htmlFor="parent" className="block text-sm font-medium text-gray-700">
-          Apiary:
-        </label>
-        <select
-          id="parent"
-          name="parent"
-          value={formData.parent}
-          onChange={handleChange}
-          required
-          className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 ${
-            errors.parent ? 'border-red-500' : ''
-          }`}
-        >
-          <option value="">Select an apiary</option>
-          {apiaries.map((apiary) => (
-            <option key={apiary._id} value={apiary._id}>
-              {apiary.name}
-            </option>
-          ))}
-        </select>
-        {errors.parent && <p className="text-red-500 text-xs mt-1">{errors.parent}</p>}
       </div>
       <div>
         <label htmlFor="queenId" className="block text-sm font-medium text-gray-700">
@@ -247,25 +162,35 @@ const HiveForm = ({ initialData, apiaries, onSubmit, onClose }) => {
       </div>
       <div>
         <h3 className="text-lg font-medium text-gray-700">Boxes</h3>
-        {formData.boxes.map((box, index) => (
+        {formData.children.map((box, index) => (
           <div key={index} className="flex items-center space-x-2 mt-2">
             <span>
-              Box {box.boxNumber} - {box.frames} frames
+              Box {box.boxNumber} - Type: {box.type} - {box.frames} frames
             </span>
             <button type="button" onClick={() => removeBox(index)} className="text-red-600">
               Remove
             </button>
           </div>
         ))}
-        <div className="flex items-center space-x-2 mt-2">
+        <div className="space-y-2 mt-2">
           <input
-            type="number"
+            type="text"
             name="boxNumber"
             value={newBox.boxNumber}
             onChange={handleBoxChange}
             placeholder="Box Number"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
           />
+          <select
+            name="type"
+            value={newBox.type}
+            onChange={handleBoxChange}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+          >
+            <option value="">Select Box Type</option>
+            <option value="brood">Brood</option>
+            <option value="honey">Honey</option>
+          </select>
           <input
             type="number"
             name="frames"
@@ -282,12 +207,18 @@ const HiveForm = ({ initialData, apiaries, onSubmit, onClose }) => {
             Add Box
           </button>
         </div>
+        {errors.children && <p className="text-red-500 text-xs mt-1">{errors.children}</p>}
       </div>
-      <Button type="submit" disabled={mutation.isLoading}>
-        {mutation.isLoading ? 'Saving...' : formData._id ? 'Update' : 'Create'} Hive
-      </Button>
-      {mutation.isError && (
-        <div className="text-red-600">Error saving hive: {mutation.error.message}</div>
+      <div className="flex justify-between">
+        <Button type="submit" disabled={createHiveMutation.isLoading || updateHiveMutation.isLoading}>
+          {(createHiveMutation.isLoading || updateHiveMutation.isLoading) ? 'Saving...' : formData._id ? 'Update' : 'Create'} Hive
+        </Button>
+        <Button type="button" onClick={onClose} className="bg-gray-300 text-gray-700">
+          Cancel
+        </Button>
+      </div>
+      {errors.submit && (
+        <div className="text-red-600">Error saving hive: {errors.submit}</div>
       )}
     </form>
   );

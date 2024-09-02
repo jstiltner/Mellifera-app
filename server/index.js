@@ -4,11 +4,14 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 require('dotenv').config();
+
 const routes = require('./routes/routes');
 const authRoutes = require('./routes/auth');
 const hiveRoutes = require('./routes/hiveRoutes');
 const inspectionRoutes = require('./routes/inspectionRoutes');
 const voiceRoutes = require('./routes/voiceRoutes');
+const boxRoutes = require('./routes/boxRoutes');
+
 const passport = require('passport');
 const session = require('express-session');
 require('./config/passport');
@@ -62,6 +65,7 @@ app.use('/api/hives', hiveRoutes);
 app.use('/api/hives', inspectionRoutes); // Updated this line
 app.use('/auth', authRoutes);
 app.use('/api/voice', voiceRoutes);
+app.use('/api', boxRoutes);
 
 // Serve static files
 app.use(express.static(DIST_DIR));

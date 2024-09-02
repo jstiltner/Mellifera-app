@@ -1,21 +1,24 @@
-import React, { useContext, useState } from 'react';
-import { HiveContext } from '../context/HiveContext';
+import React, { useState, useEffect } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { useHives, useUpdateHivePosition } from '../hooks/useHives';
 
 const Apiary = ({ apiaryId }) => {
-  const { useAllHives, useUpdateHivePosition } = useContext(HiveContext);
-  const { data: hives, isLoading, error } = useAllHives();
-  const updateHivePosition = useUpdateHivePosition();
+  const { data: hives, isLoading, error } = useHives(apiaryId);
+  const updateHivePositionMutation = useUpdateHivePosition();
 
-  const [rows, setRows] = useState(() => {
-    if (!hives) return [];
-    const maxRow = Math.max(...hives.map((hive) => hive.position.row));
-    return Array.from({ length: maxRow + 1 }, (_, i) =>
-      hives
-        .filter((hive) => hive.position.row === i)
-        .sort((a, b) => a.position.orderNumber - b.position.orderNumber)
-    );
-  });
+  const [rows, setRows] = useState([]);
+
+  useEffect(() => {
+    if (Array.isArray(hives) && hives.length > 0) {
+      const maxRow = Math.max(...hives.map((hive) => hive.position?.row ?? 0));
+      const newRows = Array.from({ length: maxRow + 1 }, (_, i) =>
+        hives
+          .filter((hive) => hive.position?.row === i)
+          .sort((a, b) => (a.position?.orderNumber ?? 0) - (b.position?.orderNumber ?? 0))
+      );
+      setRows(newRows);
+    }
+  }, [hives]);
 
   const onDragEnd = (result) => {
     if (!result.destination) return;
@@ -34,7 +37,7 @@ const Apiary = ({ apiaryId }) => {
 
       // Update positions
       newRow.forEach((hive, index) => {
-        updateHivePosition.mutate({
+        updateHivePositionMutation.mutate({
           hiveId: hive._id,
           position: { row: parseInt(source.droppableId), orderNumber: index },
         });
@@ -52,13 +55,13 @@ const Apiary = ({ apiaryId }) => {
       setRows(newRows);
 
       // Update positions
-      updateHivePosition.mutate({
+      updateHivePositionMutation.mutate({
         hiveId: movedItem._id,
         position: { row: parseInt(destination.droppableId), orderNumber: destination.index },
       });
       destRow.forEach((hive, index) => {
         if (hive._id !== movedItem._id) {
-          updateHivePosition.mutate({
+          updateHivePositionMutation.mutate({
             hiveId: hive._id,
             position: { row: parseInt(destination.droppableId), orderNumber: index },
           });
