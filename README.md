@@ -48,9 +48,9 @@ Mellifera is designed to be a beekeeper's companion, enabling data-driven decisi
 - [![MongoDB][MongoDB.com]][MongoDB-url]
 - [![TailwindCSS][Tailwindcss.com]][TailwindCss-url]
 - [![Whisper][Whisper.com]][Whisper-url]
-- [!HuggingFace[HuggingFace.com]][HuggingFace-url]
+- [![HuggingFace][HuggingFace.com]][HuggingFace-url]
 - [![onnx][onnx.com]][onnx-url]
-- [![Docker][Docker.com]][Docker-url]
+- [![Docker][docker.com]][docker-url]
 - [![Swagger][Swagger.io]][Swagger-url]
 
 ## Getting Started
