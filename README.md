@@ -46,11 +46,11 @@ Mellifera is designed to be a beekeeper's companion, enabling data-driven decisi
 - [![React][React.js]][React-url]
 - [![TanStack Query][TanStack-Query]][TanStack-Query-url]
 - [![MongoDB][MongoDB.com]][MongoDB-url]
-- [![TailwindCSS][Tailwindcss.com]][Tailwindcss-url]
+- [![Tailwindcss][Tailwindcss.com]][Tailwindcss-url]
 - [![Whisper][Whisper.com]][Whisper-url]
 - [![HuggingFace][HuggingFace.com]][HuggingFace-url]
 - [![onnx][onnx.com]][onnx-url]
-- [![Docker][docker.com]][docker-url]
+- [![docker][docker.com]][docker-url]
 - [![Swagger][Swagger.io]][Swagger-url]
 
 ## Getting Started
@@ -147,7 +147,7 @@ Project Link: [https://github.com/jstiltner/Mellifera-app](https://github.com/js
 [React-url]: https://reactjs.org/
 [Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
 [Tailwindcss.com]: https://img.shields.io/badge/Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=fff&style=for-the-badge
-[Tailwind-url]: https://tailwindcss.com
+[Tailwindcss-url]: https://tailwindcss.com
 [Expressjs.com]: https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express&logocolor=white
 [Expressjs-url]: https://expressjs.com
 [Nodejs.org]: https://img.shields.io/badge/nodejs-FFFFFF?style=for-the-badge&logo=node.js&logoColor=5FA04E
