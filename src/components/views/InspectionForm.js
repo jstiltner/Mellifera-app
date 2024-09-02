@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useCreateInspection } from '../../hooks/useInspections';
+import { useCreateInspection, useUpdateInspection, useDeleteInspection } from '../../hooks/useInspections';
 
-const InspectionForm = () => {
-  const { id: hiveId } = useParams();
+const InspectionForm = ({ initialInspection, onClose }) => {
+  const { id: hiveIdString } = useParams();
+  const hiveId = parseInt(hiveIdString, 10);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -21,7 +22,15 @@ const InspectionForm = () => {
     notes: '',
   });
 
+  useEffect(() => {
+    if (initialInspection) {
+      setFormData(initialInspection);
+    }
+  }, [initialInspection]);
+
   const createInspection = useCreateInspection();
+  const updateInspection = useUpdateInspection();
+  const deleteInspection = useDeleteInspection();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -33,19 +42,45 @@ const InspectionForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    createInspection.mutate(
-      { hiveId, inspectionData: formData },
-      {
-        onSuccess: () => {
-          navigate(`/hives/${hiveId}`);
-        },
-      }
-    );
+    if (initialInspection) {
+      updateInspection.mutate(
+        { hiveId, inspectionId: initialInspection._id, inspectionData: formData },
+        {
+          onSuccess: () => {
+            onClose();
+          },
+        }
+      );
+    } else {
+      createInspection.mutate(
+        { hiveId, inspectionData: formData },
+        {
+          onSuccess: () => {
+            navigate(`/hives/${hiveId}`);
+          },
+        }
+      );
+    }
+  };
+
+  const handleDelete = () => {
+    if (initialInspection && window.confirm('Are you sure you want to delete this inspection?')) {
+      deleteInspection.mutate(
+        { hiveId, inspectionId: initialInspection._id },
+        {
+          onSuccess: () => {
+            onClose();
+          },
+        }
+      );
+    }
   };
 
   return (
     <div className="max-w-2xl mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">New Inspection for Hive {hiveId}</h2>
+      <h2 className="text-2xl font-bold mb-4">
+        {initialInspection ? 'Edit' : 'New'} Inspection for Hive {hiveId}
+      </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block mb-1">Date:</label>
@@ -193,13 +228,25 @@ const InspectionForm = () => {
           ></textarea>
         </div>
 
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-          disabled={createInspection.isLoading}
-        >
-          {createInspection.isLoading ? 'Submitting...' : 'Submit Inspection'}
-        </button>
+        <div className="flex justify-between">
+          <button
+            type="submit"
+            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+            disabled={createInspection.isLoading || updateInspection.isLoading}
+          >
+            {(createInspection.isLoading || updateInspection.isLoading) ? 'Submitting...' : (initialInspection ? 'Update' : 'Submit') + ' Inspection'}
+          </button>
+          {initialInspection && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
+              disabled={deleteInspection.isLoading}
+            >
+              {deleteInspection.isLoading ? 'Deleting...' : 'Delete Inspection'}
+            </button>
+          )}
+        </div>
       </form>
     </div>
   );

@@ -11,6 +11,7 @@ import './styles/tailwind.css';
 import ApiaryDetails from './components/views/ApiaryDetails';
 import HiveDetails from './components/views/HiveDetails';
 import InspectionForm from './components/views/InspectionForm';
+import InspectionReview from './components/views/InspectionReview';
 import AuthenticatedQueryClientProvider from './hooks/AuthenticatedQueryClientProvider';
 
 // Register service worker
@@ -127,10 +128,18 @@ const AppWithProviders = () => {
                   }
                 />
                 <Route
-                  path="/hives/:id/add-inspection"
+                  path="/hives/:hiveId/add-inspection"
                   element={
                     <ProtectedRoute>
                       <InspectionForm isOnline={isOnline}/>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/hives/:hiveId/inspections/:inspectionId"
+                  element={
+                    <ProtectedRoute>
+                      <InspectionReview isOnline={isOnline}/>
                     </ProtectedRoute>
                   }
                 />

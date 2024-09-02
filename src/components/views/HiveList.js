@@ -1,16 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
 import { useHives, useCreateHive } from '../../hooks/useHives';
 import HiveForm from './HiveForm';
 import Modal from '../Modal';
+import { errorToast } from '../../utils/errorHandling';
 
 const HIVES_PER_PAGE = 10;
 
 const HiveList = () => {
   const { apiaryId } = useParams();
-  const queryClient = useQueryClient();
   const { ref, inView } = useInView();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -20,40 +20,35 @@ const HiveList = () => {
     hasNextPage,
     isFetchingNextPage,
     status,
+    error,
     refetch
   } = useHives(apiaryId);
 
-  React.useEffect(() => {
+  const createHiveMutation = useCreateHive();
+
+  useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  const createHiveMutation = useCreateHive();
-
   const handleCreateHive = async (hiveData) => {
     try {
-      await createHiveMutation.mutateAsync(
-        { apiaryId, hiveData },
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries(['hives', apiaryId]);
-            queryClient.invalidateQueries(['apiaries']);
-            refetch();
-            setIsModalOpen(false);
-          },
-        }
-      );
+      await createHiveMutation.mutateAsync({ apiaryId, hiveData });
+      setIsModalOpen(false);
     } catch (error) {
-      console.error('Error creating hive:', error);
-      // Handle error (e.g., show error message to user)
+      errorToast(error, 'Error creating hive');
     }
   };
 
   if (status === 'loading') {
     return (
       <div className="text-center py-4" aria-live="polite">
-        Loading hives...
+        <span className="sr-only">Loading hives</span>
+        <svg className="animate-spin h-8 w-8 mx-auto text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
       </div>
     );
   }
@@ -61,7 +56,7 @@ const HiveList = () => {
   if (status === 'error') {
     return (
       <div className="text-center py-4 text-red-600" aria-live="assertive">
-        Error: {status.error.message}
+        Error: {error.message}
       </div>
     );
   }
@@ -82,7 +77,7 @@ const HiveList = () => {
       </div>
       {hives.length > 0 ? (
         <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" role="list">
-          {Array.isArray(hives) && hives.map((hive) => (
+          {hives.map((hive) => (
             <li
               key={hive._id}
               className="border rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-200"

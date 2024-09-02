@@ -62,7 +62,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 // Routes
 app.use('/api', routes);
 app.use('/api/hives', hiveRoutes);
-app.use('/api/hives', inspectionRoutes); // Updated this line
+app.use('/api', inspectionRoutes); // Updated this line for consistency
 app.use('/auth', authRoutes);
 app.use('/api/voice', voiceRoutes);
 app.use('/api', boxRoutes);
@@ -77,9 +77,9 @@ app.post('/api/sync', async (req, res) => {
   // Assuming you have a Mongoose model named 'DataModel'
   try {
     await DataModel.create(data);
-    res.status(200).send('Data synced successfully');
+    res.status(200).json({ message: 'Data synced successfully' });
   } catch (error) {
-    res.status(500).send('Failed to sync data');
+    res.status(500).json({ error: 'Internal Server Error', message: 'Failed to sync data' });
   }
 });
 

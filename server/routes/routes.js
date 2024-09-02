@@ -7,8 +7,6 @@ const { getReportData } = require('../reports');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 const Apiary = require('../models/Apiary');
-const Hive = require('../models/Hive');
-const Box = require('../models/Box');
 const mongoose = require('mongoose');
 
 const predictor = new HiveOutcomePredictor();
@@ -25,26 +23,39 @@ const predictor = new HiveOutcomePredictor();
  * /api/auth/me:
  *   get:
  *     summary: Get authenticated user information
+ *     description: Retrieves the information of the currently authenticated user.
  *     tags: [User]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: User information retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/User'
  *       404:
  *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/auth/me', auth, async (req, res) => {
   try {
     const user = await User.findById(req.user);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ error: 'Not Found', message: 'User not found' });
     }
     res.json({ user });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
 
@@ -53,21 +64,32 @@ router.get('/auth/me', auth, async (req, res) => {
  * /api/getAll:
  *   get:
  *     summary: Get all data
+ *     description: Retrieves all data entries. This endpoint is protected and requires authentication.
  *     tags: [Data]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: All data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Data'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/getAll', auth, async (req, res) => {
   try {
     const data = await Data.getAll();
     res.json(data);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
 
@@ -76,6 +98,7 @@ router.get('/getAll', auth, async (req, res) => {
  * /api/getOne/{id}:
  *   get:
  *     summary: Get data by ID
+ *     description: Retrieves a specific data entry by its ID. This endpoint is protected and requires authentication.
  *     tags: [Data]
  *     security:
  *       - bearerAuth: []
@@ -83,15 +106,28 @@ router.get('/getAll', auth, async (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Unique identifier of the data entry
  *         schema:
  *           type: string
  *     responses:
  *       200:
  *         description: Data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Data'
  *       404:
  *         description: Data not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/getOne/:id', auth, async (req, res) => {
   try {
@@ -99,10 +135,10 @@ router.get('/getOne/:id', auth, async (req, res) => {
     if (data) {
       res.json(data);
     } else {
-      res.status(404).json({ message: 'Data not found' });
+      res.status(404).json({ error: 'Not Found', message: 'Data not found' });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
 
@@ -111,6 +147,7 @@ router.get('/getOne/:id', auth, async (req, res) => {
  * /api/update/{id}:
  *   patch:
  *     summary: Update data by ID
+ *     description: Updates a specific data entry by its ID. This endpoint is protected and requires authentication.
  *     tags: [Data]
  *     security:
  *       - bearerAuth: []
@@ -118,6 +155,7 @@ router.get('/getOne/:id', auth, async (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Unique identifier of the data entry
  *         schema:
  *           type: string
  *     requestBody:
@@ -125,21 +163,33 @@ router.get('/getOne/:id', auth, async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             type: object
+ *             $ref: '#/components/schemas/DataUpdate'
  *     responses:
  *       200:
  *         description: Data updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Data'
  *       400:
  *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.patch('/update/:id', auth, async (req, res) => {
   try {
     const updatedData = await Data.updateOne(req.params.id, req.body);
     res.json(updatedData);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ error: 'Bad Request', message: error.message });
   }
 });
 
@@ -148,6 +198,7 @@ router.patch('/update/:id', auth, async (req, res) => {
  * /api/delete/{id}:
  *   delete:
  *     summary: Delete data by ID
+ *     description: Deletes a specific data entry by its ID. This endpoint is protected and requires authentication.
  *     tags: [Data]
  *     security:
  *       - bearerAuth: []
@@ -155,20 +206,32 @@ router.patch('/update/:id', auth, async (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Unique identifier of the data entry
  *         schema:
  *           type: string
  *     responses:
  *       200:
  *         description: Data deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.delete('/delete/:id', auth, async (req, res) => {
   try {
     await Data.deleteOne(req.params.id);
     res.json({ message: 'Data deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
 
@@ -177,6 +240,7 @@ router.delete('/delete/:id', auth, async (req, res) => {
  * /api/predict:
  *   post:
  *     summary: Predict hive outcome
+ *     description: Uses a machine learning model to predict the outcome of a hive based on input data. This endpoint is protected and requires authentication.
  *     tags: [Prediction]
  *     security:
  *       - bearerAuth: []
@@ -185,12 +249,20 @@ router.delete('/delete/:id', auth, async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             type: object
+ *             $ref: '#/components/schemas/PredictionInput'
  *     responses:
  *       200:
  *         description: Prediction successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PredictionResult'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post('/predict', auth, async (req, res) => {
   try {
@@ -198,7 +270,7 @@ router.post('/predict', auth, async (req, res) => {
     const prediction = await predictor.predict(inputData);
     res.json({ prediction });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
 
@@ -207,6 +279,7 @@ router.post('/predict', auth, async (req, res) => {
  * /api/voice-command:
  *   post:
  *     summary: AI-powered voice recognition
+ *     description: Processes a voice command using AI and returns a relevant response. This endpoint is protected and requires authentication.
  *     tags: [AI]
  *     security:
  *       - bearerAuth: []
@@ -224,8 +297,19 @@ router.post('/predict', auth, async (req, res) => {
  *     responses:
  *       200:
  *         description: Voice command processed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 response:
+ *                   type: string
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post('/voice-command', auth, async (req, res) => {
   try {
@@ -240,7 +324,7 @@ Response:`;
     const response = await generateResponse(prompt);
     res.json({ response });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
 
@@ -249,21 +333,30 @@ Response:`;
  * /api/reports:
  *   get:
  *     summary: Get report data
+ *     description: Retrieves report data for the authenticated user. This endpoint is protected and requires authentication.
  *     tags: [Reports]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Report data retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ReportData'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/reports', auth, async (req, res) => {
   try {
     const reportData = await getReportData();
     res.json(reportData);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
 
@@ -272,14 +365,25 @@ router.get('/reports', auth, async (req, res) => {
  * /api/apiaries:
  *   get:
  *     summary: Get all apiaries for the authenticated user
+ *     description: Retrieves all apiaries associated with the authenticated user, including basic information about their hives.
  *     tags: [Apiaries]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Apiaries retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Apiary'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/apiaries', auth, async (req, res) => {
   try {
@@ -292,9 +396,7 @@ router.get('/apiaries', auth, async (req, res) => {
     res.status(200).json(apiaries);
   } catch (error) {
     console.error(`Error fetching apiaries for user ${req.user}:`, error);
-    res
-      .status(500)
-      .json({ message: 'An error occurred while fetching apiaries', error: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: 'An error occurred while fetching apiaries' });
   }
 });
 
@@ -303,6 +405,7 @@ router.get('/apiaries', auth, async (req, res) => {
  * /api/apiaries/{id}:
  *   get:
  *     summary: Get single apiary by ID
+ *     description: Retrieves detailed information about a specific apiary, including its hives.
  *     tags: [Apiaries]
  *     security:
  *       - bearerAuth: []
@@ -310,15 +413,28 @@ router.get('/apiaries', auth, async (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Unique identifier of the apiary
  *         schema:
  *           type: string
  *     responses:
  *       200:
  *         description: Apiary retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Apiary'
  *       404:
  *         description: Apiary not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/apiaries/:id', auth, async (req, res) => {
   try {
@@ -328,11 +444,11 @@ router.get('/apiaries/:id', auth, async (req, res) => {
       select: 'name location hiveType lastInspection',
     });
     if (!apiary) {
-      return res.status(404).json({ message: 'Apiary not found' });
+      return res.status(404).json({ error: 'Not Found', message: 'Apiary not found' });
     }
     res.json(apiary);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
 
@@ -341,6 +457,7 @@ router.get('/apiaries/:id', auth, async (req, res) => {
  * /api/apiaries:
  *   post:
  *     summary: Create new apiary
+ *     description: Creates a new apiary for the authenticated user.
  *     tags: [Apiaries]
  *     security:
  *       - bearerAuth: []
@@ -349,12 +466,20 @@ router.get('/apiaries/:id', auth, async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             type: object
+ *             $ref: '#/components/schemas/ApiaryInput'
  *     responses:
  *       201:
  *         description: Apiary created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Apiary'
  *       400:
  *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post('/apiaries', auth, async (req, res) => {
   try {
@@ -365,7 +490,7 @@ router.post('/apiaries', auth, async (req, res) => {
     await user.save();
     res.status(201).json(savedApiary);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ error: 'Bad Request', message: error.message });
   }
 });
 
@@ -374,6 +499,7 @@ router.post('/apiaries', auth, async (req, res) => {
  * /api/apiaries/{id}:
  *   put:
  *     summary: Update apiary by ID
+ *     description: Updates an existing apiary's information.
  *     tags: [Apiaries]
  *     security:
  *       - bearerAuth: []
@@ -381,6 +507,7 @@ router.post('/apiaries', auth, async (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Unique identifier of the apiary
  *         schema:
  *           type: string
  *     requestBody:
@@ -388,14 +515,26 @@ router.post('/apiaries', auth, async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             type: object
+ *             $ref: '#/components/schemas/ApiaryUpdate'
  *     responses:
  *       200:
  *         description: Apiary updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Apiary'
  *       404:
  *         description: Apiary not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       400:
  *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.put('/apiaries/:id', auth, async (req, res) => {
   try {
@@ -405,11 +544,11 @@ router.put('/apiaries/:id', auth, async (req, res) => {
       { new: true }
     );
     if (!apiary) {
-      return res.status(404).json({ message: 'Apiary not found' });
+      return res.status(404).json({ error: 'Not Found', message: 'Apiary not found' });
     }
     res.json(apiary);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ error: 'Bad Request', message: error.message });
   }
 });
 
@@ -418,6 +557,7 @@ router.put('/apiaries/:id', auth, async (req, res) => {
  * /api/apiaries/{id}:
  *   delete:
  *     summary: Delete apiary by ID
+ *     description: Deletes an existing apiary and removes it from the user's apiaries list.
  *     tags: [Apiaries]
  *     security:
  *       - bearerAuth: []
@@ -425,322 +565,44 @@ router.put('/apiaries/:id', auth, async (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Unique identifier of the apiary
  *         schema:
  *           type: string
  *     responses:
  *       200:
  *         description: Apiary deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  *       404:
  *         description: Apiary not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.delete('/apiaries/:id', auth, async (req, res) => {
   try {
     const deletedApiary = await Apiary.findOneAndDelete({ _id: req.params.id, parent: req.user });
     if (!deletedApiary) {
-      return res.status(404).json({ message: 'Apiary not found' });
+      return res.status(404).json({ error: 'Not Found', message: 'Apiary not found' });
     }
     const user = await User.findById(req.user);
     user.children.pull(deletedApiary._id);
     await user.save();
     res.json({ message: 'Apiary deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-/**
- * @swagger
- * /api/hives:
- *   get:
- *     summary: Get all hives with pagination
- *     tags: [Hives]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: page
- *         schema:
- *           type: integer
- *         description: Page number
- *       - in: query
- *         name: limit
- *         schema:
- *           type: integer
- *         description: Number of items per page
- *     responses:
- *       200:
- *         description: Hives retrieved successfully
- *       500:
- *         description: Server error
- */
-router.get('/api/hives', auth, async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    const apiaryIds = await Apiary.find({ parent: req.user }).distinct('_id');
-
-    const hives = await Hive.find({ parent: { $in: apiaryIds } })
-      .populate('parent', 'name location')
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-
-    const totalHives = await Hive.countDocuments({ parent: { $in: apiaryIds } });
-
-    res.json({
-      hives,
-      currentPage: page,
-      totalPages: Math.ceil(totalHives / limit),
-      totalHives,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-/**
- * @swagger
- * /api/hives/{id}:
- *   get:
- *     summary: Get single hive by ID
- *     tags: [Hives]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Hive retrieved successfully
- *       404:
- *         description: Hive not found
- *       500:
- *         description: Server error
- */
-router.get('/hives/:id', auth, async (req, res) => {
-  try {
-    const hive = await Hive.findOne({
-      _id: req.params.id,
-      parent: { $in: await Apiary.find({ parent: req.user }).distinct('_id') },
-    }).populate('parent', 'name location');
-    if (!hive) {
-      return res.status(404).json({ message: 'Hive not found' });
-    }
-    res.json(hive);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-/**
- * @swagger
- * /api/boxes/{id}:
- *   post:
- *     summary: Handle adding box to hive
- *     tags: [Boxes, Hives]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Box configured successfully on Hive
- *       404:
- *         description: Hive not found
- *       500:
- *         description: Server error
- */
-router.post('/boxes/:id', auth, async (req, res) => {
-  try {
-    const hiveId = req.params.id;
-    const boxDataArray = req.body;
-
-    // Check if the hive exists and belongs to the user
-    const hive = await Hive.findOne({
-      _id: hiveId,
-      parent: { $in: await Apiary.find({ parent: req.user }).distinct('_id') },
-    });
-
-    if (!hive) {
-      return res.status(404).json({ message: 'Hive not found or unauthorized' });
-    }
-
-    const savedBoxes = [];
-    for (const boxData of boxDataArray) {
-      const newBox = new Box({
-        ...boxData,
-        parent: hiveId,
-      });
-
-      const savedBox = await newBox.save();
-      savedBoxes.push(savedBox);
-
-      // Update the hive's children array
-      hive.children.push(savedBox);
-    }
-    await hive.save();
-    res.status(201).json(savedBoxes);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-/**
- * @swagger
- * /api/hives:
- *   post:
- *     summary: Create new hive
- *     tags: [Hives]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               apiaryId:
- *                 type: string
- *               name:
- *                 type: string
- *               location:
- *                 type: string
- *               hiveType:
- *                 type: string
- *     responses:
- *       201:
- *         description: Hive created successfully
- *       404:
- *         description: Apiary not found or unauthorized
- *       400:
- *         description: Bad request
- */
-router.post('/hives', auth, async (req, res) => {
-  try {
-    const { apiaryId, ...hiveData } = req.body;
-
-    // Check if the apiary exists and belongs to the user
-    const apiary = await Apiary.findOne({ _id: apiaryId, parent: req.user });
-    if (!apiary) {
-      return res.status(404).json({ message: 'Apiary not found or unauthorized' });
-    }
-
-    const newHive = new Hive({
-      ...hiveData,
-      parent: apiaryId,
-    });
-
-    const savedHive = await newHive.save();
-
-    // Update the apiary's children array
-    apiary.children.push(savedHive._id);
-    await apiary.save();
-
-    res.status(201).json(savedHive);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-/**
- * @swagger
- * /api/hives/{id}:
- *   put:
- *     summary: Update hive by ID
- *     tags: [Hives]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *     responses:
- *       200:
- *         description: Hive updated successfully
- *       404:
- *         description: Hive not found or unauthorized
- *       400:
- *         description: Bad request
- */
-router.put('/api/hives/:id', auth, async (req, res) => {
-  try {
-    const hive = await Hive.findOneAndUpdate(
-      {
-        _id: req.params.id,
-        parent: { $in: await Apiary.find({ parent: req.user }).distinct('_id') },
-      },
-      req.body,
-      { new: true }
-    ).populate('parent', 'name location');
-    if (!hive) {
-      return res.status(404).json({ message: 'Hive not found or unauthorized' });
-    }
-    res.json(hive);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-/**
- * @swagger
- * /api/hives/{id}:
- *   delete:
- *     summary: Delete hive by ID
- *     tags: [Hives]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Hive deleted successfully
- *       404:
- *         description: Hive not found or unauthorized
- *       500:
- *         description: Server error
- */
-router.delete('/api/hives/:id', auth, async (req, res) => {
-  try {
-    const deletedHive = await Hive.findOneAndDelete({
-      _id: req.params.id,
-      parent: { $in: await Apiary.find({ parent: req.user }).distinct('_id') },
-    });
-    if (!deletedHive) {
-      return res.status(404).json({ message: 'Hive not found or unauthorized' });
-    }
-
-    // Remove the hive from the apiary's children array
-    const apiary = await Apiary.findById(deletedHive.parent);
-    apiary.children.pull(deletedHive._id);
-    await apiary.save();
-
-    res.json({ message: 'Hive deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
 

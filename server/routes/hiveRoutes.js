@@ -9,6 +9,7 @@ const Apiary = require('../models/Apiary');
  * /api/hives:
  *   get:
  *     summary: Get all hives with pagination
+ *     description: Retrieves a paginated list of hives for the authenticated user.
  *     tags: [Hives]
  *     security:
  *       - bearerAuth: []
@@ -17,17 +18,36 @@ const Apiary = require('../models/Apiary');
  *         name: page
  *         schema:
  *           type: integer
- *         description: Page number
+ *         description: Page number (default: 1)
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
- *         description: Number of items per page
+ *         description: Number of items per page (default: 10)
  *     responses:
  *       200:
  *         description: Hives retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 hives:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Hive'
+ *                 currentPage:
+ *                   type: integer
+ *                 totalPages:
+ *                   type: integer
+ *                 totalHives:
+ *                   type: integer
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/', auth, async (req, res) => {
   try {
@@ -52,7 +72,7 @@ router.get('/', auth, async (req, res) => {
       totalHives,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
 
@@ -61,16 +81,32 @@ router.get('/', auth, async (req, res) => {
  * /api/hives/current:
  *   get:
  *     summary: Get the current hive ID
+ *     description: Retrieves the ID of the most recently created hive for the authenticated user.
  *     tags: [Hives]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
  *         description: Current hive ID retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 hiveId:
+ *                   type: string
  *       404:
  *         description: No hives found for the user
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/current', auth, async (req, res) => {
   try {
@@ -78,12 +114,12 @@ router.get('/current', auth, async (req, res) => {
     const hive = await Hive.findOne({ parent: { $in: apiaryIds } }).sort({ createdAt: -1 });
 
     if (!hive) {
-      return res.status(404).json({ message: 'No hives found for the user' });
+      return res.status(404).json({ error: 'Not Found', message: 'No hives found for the user' });
     }
 
     res.json({ hiveId: hive._id });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
 
@@ -92,6 +128,7 @@ router.get('/current', auth, async (req, res) => {
  * /api/hives/{id}:
  *   get:
  *     summary: Get single hive by ID
+ *     description: Retrieves detailed information about a specific hive.
  *     tags: [Hives]
  *     security:
  *       - bearerAuth: []
@@ -99,15 +136,28 @@ router.get('/current', auth, async (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Unique identifier of the hive
  *         schema:
  *           type: string
  *     responses:
  *       200:
  *         description: Hive retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Hive'
  *       404:
  *         description: Hive not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.get('/:id', auth, async (req, res) => {
   try {
@@ -116,11 +166,11 @@ router.get('/:id', auth, async (req, res) => {
       parent: { $in: await Apiary.find({ parent: req.user }).distinct('_id') },
     }).populate('parent', 'name location');
     if (!hive) {
-      return res.status(404).json({ message: 'Hive not found' });
+      return res.status(404).json({ error: 'Not Found', message: 'Hive not found' });
     }
     res.json(hive);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
 
@@ -129,6 +179,7 @@ router.get('/:id', auth, async (req, res) => {
  * /api/hives:
  *   post:
  *     summary: Create new hive
+ *     description: Creates a new hive associated with an apiary.
  *     tags: [Hives]
  *     security:
  *       - bearerAuth: []
@@ -138,6 +189,10 @@ router.get('/:id', auth, async (req, res) => {
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - apiaryId
+ *               - name
+ *               - children
  *             properties:
  *               apiaryId:
  *                 type: string
@@ -157,10 +212,22 @@ router.get('/:id', auth, async (req, res) => {
  *     responses:
  *       201:
  *         description: Hive created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Hive'
  *       404:
  *         description: Apiary not found or unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       400:
  *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post('/', auth, async (req, res) => {
   try {
@@ -169,12 +236,12 @@ router.post('/', auth, async (req, res) => {
     // Check if the apiary exists and belongs to the user
     const apiary = await Apiary.findOne({ _id: apiaryId, parent: req.user });
     if (!apiary) {
-      return res.status(404).json({ message: 'Apiary not found or unauthorized' });
+      return res.status(404).json({ error: 'Not Found', message: 'Apiary not found or unauthorized' });
     }
 
     // Validate required fields
     if (!children || children.length === 0) {
-      return res.status(400).json({ message: 'Name and at least one box are required' });
+      return res.status(400).json({ error: 'Bad Request', message: 'Name and at least one box are required' });
     }
 
     const newHive = new Hive({
@@ -192,7 +259,7 @@ router.post('/', auth, async (req, res) => {
 
     res.status(201).json(savedHive);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ error: 'Bad Request', message: error.message });
   }
 });
 
@@ -201,6 +268,7 @@ router.post('/', auth, async (req, res) => {
  * /api/hives/{id}:
  *   put:
  *     summary: Update hive by ID
+ *     description: Updates an existing hive's information.
  *     tags: [Hives]
  *     security:
  *       - bearerAuth: []
@@ -208,6 +276,7 @@ router.post('/', auth, async (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Unique identifier of the hive
  *         schema:
  *           type: string
  *     requestBody:
@@ -215,14 +284,26 @@ router.post('/', auth, async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             type: object
+ *             $ref: '#/components/schemas/HiveUpdate'
  *     responses:
  *       200:
  *         description: Hive updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Hive'
  *       404:
  *         description: Hive not found or unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       400:
  *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.put('/:id', auth, async (req, res) => {
   try {
@@ -235,11 +316,11 @@ router.put('/:id', auth, async (req, res) => {
       { new: true }
     ).populate('parent', 'name location');
     if (!hive) {
-      return res.status(404).json({ message: 'Hive not found or unauthorized' });
+      return res.status(404).json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
     }
     res.json(hive);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ error: 'Bad Request', message: error.message });
   }
 });
 
@@ -248,6 +329,7 @@ router.put('/:id', auth, async (req, res) => {
  * /api/hives/{id}:
  *   delete:
  *     summary: Delete hive by ID
+ *     description: Deletes an existing hive and removes it from its associated apiary.
  *     tags: [Hives]
  *     security:
  *       - bearerAuth: []
@@ -255,15 +337,31 @@ router.put('/:id', auth, async (req, res) => {
  *       - in: path
  *         name: id
  *         required: true
+ *         description: Unique identifier of the hive
  *         schema:
  *           type: string
  *     responses:
  *       200:
  *         description: Hive deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
  *       404:
  *         description: Hive not found or unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.delete('/:id', auth, async (req, res) => {
   try {
@@ -272,7 +370,7 @@ router.delete('/:id', auth, async (req, res) => {
       parent: { $in: await Apiary.find({ parent: req.user }).distinct('_id') },
     });
     if (!deletedHive) {
-      return res.status(404).json({ message: 'Hive not found or unauthorized' });
+      return res.status(404).json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
     }
 
     // Remove the hive from the apiary's children array
@@ -282,82 +380,7 @@ router.delete('/:id', auth, async (req, res) => {
 
     res.json({ message: 'Hive deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-/**
- * @swagger
- * /api/hives:
- *   post:
- *     summary: Create new hive
- *     tags: [Hives]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               hiveId:
- *                 type: string
- *               apiaryId:
- *                 type: string
- *               name:
- *                 type: string
- *               location:
- *                 type: string
- *               children:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     type:
- *                       type: string
- *                     frames:
- *                       type: number
- *     responses:
- *       201:
- *         description: Hive created successfully
- *       404:
- *         description: Apiary not found or unauthorized
- *       400:
- *         description: Bad request
- */
-router.post('/', auth, async (req, res) => {
-  try {
-    const { hiveId, apiaryId, location, children, ...otherHiveData } = req.body;
-
-    // Check if the apiary exists and belongs to the user
-    const apiary = await Apiary.findOne({ _id: apiaryId, parent: req.user });
-    if (!apiary) {
-      return res.status(404).json({ message: 'Apiary not found or unauthorized' });
-    }
-
-    // Validate required fields
-    if (!children || children.length === 0) {
-      return res.status(400).json({ message: 'Name and at least one box are required' });
-    }
-
-    const newHive = new Hive({
-      _id: hiveId, // Use the provided hiveId
-      children,
-      location,
-      ...otherHiveData,
-      parent: apiaryId,
-    });
-
-    const savedHive = await newHive.save();
-
-    // Update the apiary's children array
-    apiary.children.push(savedHive._id);
-    await apiary.save();
-
-    res.status(201).json(savedHive);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
 

@@ -1,43 +1,56 @@
 import React, { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { useQueryClient } from '@tanstack/react-query';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import Button from '../Button';
-import AddBox from '../AddBox';
+import BoxForm from '../BoxForm';
 import Modal from '../Modal';
-import { useHive, useAddBox } from '../../hooks/useHives';
+import { useHive, useAddBox, useUpdateBox, useDeleteBox } from '../../hooks/useHives';
 import { useInspections } from '../../hooks/useInspections';
+import { errorToast } from '../../utils/errorHandling';
 
 const HiveDetail = ({ label, value }) => (
   <div className="mb-2">
-    <span className="font-semibold">{label}:</span> {value?.toString()}
+    <span className="font-semibold">{label}:</span> {value?.toString() || 'N/A'}
   </div>
 );
 
-const InspectionDetail = ({ inspection }) => (
-  <div className="mb-4 p-4 bg-gray-100 rounded-lg">
-    <h3 className="text-lg font-semibold mb-2">
-      Inspection on {new Date(inspection.date).toLocaleDateString()}
-    </h3>
-    <p><strong>Overall Health:</strong> {inspection.overallHealth}</p>
-    <p><strong>Queen Seen:</strong> {inspection.queenSeen ? 'Yes' : 'No'}</p>
-    <p><strong>Diseases Seen:</strong> {inspection.diseasesSeen || 'None'}</p>
-    <p><strong>Pests Seen:</strong> {inspection.pestsSeen || 'None'}</p>
-    <p><strong>Hive Temperament:</strong> {inspection.hiveTemperament}</p>
-    {inspection.notes && <p><strong>Notes:</strong> {inspection.notes}</p>}
-  </div>
-);
+const InspectionDetail = ({ inspection, hiveId }) => {
+  const navigate = useNavigate();
+
+  const handleClick = (e) => {
+    e.preventDefault();
+    navigate(`/hives/${hiveId}/inspections/${inspection._id}`);
+  };
+
+  return (
+    <Link 
+      to={`/hives/${hiveId}/inspections/${inspection._id}`} 
+      onClick={handleClick}
+      className="block mb-4 p-4 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
+    >
+      <h3 className="text-lg font-semibold mb-2">
+        Inspection on {new Date(inspection.date).toLocaleDateString()}
+      </h3>
+      <p><strong>Overall Health:</strong> {inspection.overallHealth}</p>
+      <p><strong>Queen Seen:</strong> {inspection.queenSeen ? 'Yes' : 'No'}</p>
+      <p><strong>Diseases Seen:</strong> {inspection.diseasesSeen || 'None'}</p>
+      <p><strong>Pests Seen:</strong> {inspection.pestsSeen || 'None'}</p>
+      <p><strong>Hive Temperament:</strong> {inspection.hiveTemperament}</p>
+      {inspection.notes && <p><strong>Notes:</strong> {inspection.notes}</p>}
+    </Link>
+  );
+};
 
 const HiveDetails = () => {
   const { id } = useParams();
-  const [isAddBoxModalOpen, setIsAddBoxModalOpen] = useState(false);
-  const queryClient = useQueryClient();
+  const [isBoxModalOpen, setIsBoxModalOpen] = useState(false);
+  const [selectedBox, setSelectedBox] = useState(null);
 
   const {
     data: hive,
     isLoading: isHiveLoading,
     isError: isHiveError,
     error: hiveError,
-  } = useHive(id);
+  } = useHive({ hiveId: id });
 
   const {
     data: inspections,
@@ -45,17 +58,20 @@ const HiveDetails = () => {
     isError: isInspectionsError,
     error: inspectionsError,
     refetch: refetchInspections,
-  } = useInspections(id, {
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
-  });
+  } = useInspections({ hiveId: id });
 
   const addBoxMutation = useAddBox();
+  const updateBoxMutation = useUpdateBox();
+  const deleteBoxMutation = useDeleteBox();
 
   if (isHiveLoading || isInspectionsLoading) {
     return (
       <div className="text-center py-4" aria-live="polite">
-        Loading...
+        <span className="sr-only">Loading hive details</span>
+        <svg className="animate-spin h-8 w-8 mx-auto text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
       </div>
     );
   }
@@ -76,21 +92,33 @@ const HiveDetails = () => {
     );
   }
 
-  const handleAddBox = (boxData) => {
-    addBoxMutation.mutate(
-      { hiveId: id, boxData },
-      {
-        onSuccess: (newBox) => {
-          queryClient.setQueryData(['hive', id], (oldData) => {
-            return {
-              ...oldData,
-              children: [...(oldData.children || []), newBox],
-            };
-          });
-          setIsAddBoxModalOpen(false);
-        },
-      }
-    );
+  const handleAddBox = async (boxData) => {
+    try {
+      await addBoxMutation.mutateAsync({ hiveId: id, boxData });
+      setIsBoxModalOpen(false);
+    } catch (error) {
+      errorToast(error, 'Error adding box');
+    }
+  };
+
+  const handleUpdateBox = async (updatedBoxData) => {
+    try {
+      await updateBoxMutation.mutateAsync({ hiveId: id, boxId: updatedBoxData._id, boxData: updatedBoxData });
+      setIsBoxModalOpen(false);
+      setSelectedBox(null);
+    } catch (error) {
+      errorToast(error, 'Error updating box');
+    }
+  };
+
+  const handleDeleteBox = async (boxId) => {
+    try {
+      await deleteBoxMutation.mutateAsync({ hiveId: id, boxId });
+      setIsBoxModalOpen(false);
+      setSelectedBox(null);
+    } catch (error) {
+      errorToast(error, 'Error deleting box');
+    }
   };
 
   const boxCount = Array.isArray(hive.children) ? hive.children.length : 0;
@@ -115,6 +143,15 @@ const HiveDetails = () => {
             {hive.children.map((box, index) => (
               <li key={box._id || index} className="mb-1">
                 Box {box.boxNumber}: {box.type} ({box.frames} frames)
+                <Button
+                  className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm"
+                  onClick={() => {
+                    setSelectedBox(box);
+                    setIsBoxModalOpen(true);
+                  }}
+                >
+                  Edit
+                </Button>
               </li>
             ))}
           </ul>
@@ -123,7 +160,10 @@ const HiveDetails = () => {
         )}
         <Button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={() => setIsAddBoxModalOpen(true)}
+          onClick={() => {
+            setSelectedBox(null);
+            setIsBoxModalOpen(true);
+          }}
         >
           Add Box
         </Button>
@@ -142,7 +182,7 @@ const HiveDetails = () => {
         {Array.isArray(inspections) && inspections.length > 0 ? (
           <div>
             {inspections.map((inspection) => (
-              <InspectionDetail key={inspection._id} inspection={inspection} />
+              <InspectionDetail key={inspection._id} inspection={inspection} hiveId={id} />
             ))}
           </div>
         ) : (
@@ -155,8 +195,16 @@ const HiveDetails = () => {
         </Link>
       </div>
 
-      <Modal isOpen={isAddBoxModalOpen} onClose={() => setIsAddBoxModalOpen(false)}>
-        <AddBox hiveId={id} onSubmit={handleAddBox} onClose={() => setIsAddBoxModalOpen(false)} />
+      <Modal isOpen={isBoxModalOpen} onClose={() => {
+        setIsBoxModalOpen(false);
+        setSelectedBox(null);
+      }}>
+        <BoxForm
+          initialBox={selectedBox}
+          onAddBox={handleAddBox}
+          onUpdateBox={handleUpdateBox}
+          onDeleteBox={handleDeleteBox}
+        />
       </Modal>
     </div>
   );
