@@ -2,7 +2,7 @@
 
 <div align="center">
   <a href="https://github.com/jstiltner/Mellifera-app">
-    <img src="images/logo.webp" alt="Logo" width="500" height="232">
+    <img src="src/images/logo.webp" alt="Logo" width="500" height="232">
   </a>
 
 <h3 align="center">Mellifera</h3>
@@ -41,12 +41,17 @@ Mellifera is designed to be a beekeeper's companion, enabling data-driven decisi
 
 ### Built With
 
-- [![React][React.js]][React-url]
-- [![MongoDB][MongoDB.com]][MongoDB-url]
 - [![Nodejs][Nodejs.org]][Nodejs-url]
 - [![Expressjs][Expressjs.com]][Expressjs-url]
-- [![Bootstrap][Bootstrap.com]][Bootstrap-url]
+- [![React][React.js]][React-url]
 - [![TanStack Query][TanStack-Query]][TanStack-Query-url]
+- [![MongoDB][MongoDB.com]][MongoDB-url]
+- [![TailwindCSS][Tailwindcss.com]][TailwindCss-url]
+- [![Whisper][Whisper.com]][Whisper-url]
+- [!HuggingFace[HuggingFace.com]][HuggingFace-url]
+- [![onnx][onnx.com]][onnx-url]
+- [![Docker][Docker.com]][Docker-url]
+- [![Swagger][Swagger.io]][Swagger-url]
 
 ## Getting Started
 
@@ -141,7 +146,8 @@ Project Link: [https://github.com/jstiltner/Mellifera-app](https://github.com/js
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
 [React-url]: https://reactjs.org/
 [Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white
-[Bootstrap-url]: https://getbootstrap.com
+[Tailwindcss.com]: https://img.shields.io/badge/Tailwind%20CSS-06B6D4?logo=tailwindcss&logoColor=fff&style=for-the-badge
+[Tailwind-url]: https://tailwindcss.com
 [Expressjs.com]: https://img.shields.io/badge/express-000000?style=for-the-badge&logo=express&logocolor=white
 [Expressjs-url]: https://expressjs.com
 [Nodejs.org]: https://img.shields.io/badge/nodejs-FFFFFF?style=for-the-badge&logo=node.js&logoColor=5FA04E
@@ -150,3 +156,13 @@ Project Link: [https://github.com/jstiltner/Mellifera-app](https://github.com/js
 [MongoDB-url]: https://mongodb.com
 [TanStack-Query]: https://img.shields.io/badge/TanStack%20Query-FF4154?style=for-the-badge&logo=reactquery&logoColor=white
 [TanStack-Query-url]: https://tanstack.com/query/latest
+[Whisper-url]: https://github.com/openai/whisper
+[Whisper.com]: https://img.shields.io/badge/OpenAI-412991?logo=openai&logoColor=fff&style=flat
+[HuggingFace-url]: https://huggingface.co/
+[HuggingFace.com]: https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=huggingface&logoColor=000&style=flat
+[onnx.com]: https://img.shields.io/badge/ONNX-005CED?logo=onnx&logoColor=fff&style=flat
+[onnx-url]: https://onnx.ai
+[docker.com]: https://www.docker.com
+[docker-url]: https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff&style=flat
+[swagger.io]: https://img.shields.io/badge/Swagger-85EA2D?logo=swagger&logoColor=000&style=flat
+[swagger-url]: https://img.shields.io/badge/Swagger-85EA2D?logo=swagger&logoColor=000&style=flat
