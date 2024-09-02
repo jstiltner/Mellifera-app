@@ -160,9 +160,9 @@ Project Link: [https://github.com/jstiltner/Mellifera-app](https://github.com/js
 [Whisper.com]: https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=fff&style=flat
 [HuggingFace-url]: https://huggingface.co/
 [HuggingFace.com]: https://img.shields.io/badge/Hugging%20Face-FFD21E?style=for-the-badge&logo=huggingface&logoColor=000&style=flat
-[onnx.com]: https://img.shields.io/badge/ONNX-005CEDstyle=for-the-badge&?logo=onnx&logoColor=fff&style=flat
+[onnx.com]: https://img.shields.io/badge/ONNX-005CED?style=for-the-badge&logo=onnx&logoColor=fff&style=flat
 [onnx-url]: https://onnx.ai
 [docker-url]: https://www.docker.com
 [docker.com]: https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=fff&style=flat
-[swagger.io]: https://img.shields.io/badge/Swagger-85EA2Dstyle=for-the-badge&?logo=swagger&logoColor=000&style=flat
-[swagger-url]: https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=000&style=flat
+[swagger.io]: https://img.shields.io/badge/Swagger-85EA2D?style=for-the-badge&logo=swagger&logoColor=000&style=flat
+[swagger-url]: https://swagger.io
