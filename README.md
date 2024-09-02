@@ -162,7 +162,7 @@ Project Link: [https://github.com/jstiltner/Mellifera-app](https://github.com/js
 [HuggingFace.com]: https://img.shields.io/badge/Hugging%20Face-FFD21E?logo=huggingface&logoColor=000&style=flat
 [onnx.com]: https://img.shields.io/badge/ONNX-005CED?logo=onnx&logoColor=fff&style=flat
 [onnx-url]: https://onnx.ai
-[docker.com]: https://www.docker.com
-[docker-url]: https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff&style=flat
+[docker-url]: https://www.docker.com
+[docker.com]: https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=fff&style=flat
 [swagger.io]: https://img.shields.io/badge/Swagger-85EA2D?logo=swagger&logoColor=000&style=flat
 [swagger-url]: https://img.shields.io/badge/Swagger-85EA2D?logo=swagger&logoColor=000&style=flat
