@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import ErrorMessage from '../ErrorMessage';
 import { useCreateInspection, useUpdateInspection } from '../../hooks/useInspections';
 
-const InspectionForm = ({ initialInspection, onClose }) => {
+const InspectionForm = ({ initialInspection }) => {
   const { hiveId } = useParams();
+  const navigate = useNavigate();
   const [error, setError] = useState(null);
 
   const createInspectionMutation = useCreateInspection();
@@ -54,11 +55,15 @@ const InspectionForm = ({ initialInspection, onClose }) => {
       } else {
         await createInspectionMutation.mutateAsync({ hiveId, inspectionData: formData });
       }
-      onClose();
+      navigate(`/hives/${hiveId}`);
     } catch (error) {
       console.error('Failed to submit inspection:', error);
       setError(`Failed to submit inspection: ${error.message}`);
     }
+  };
+
+  const handleCancel = () => {
+    navigate(`/hives/${hiveId}`);
   };
 
   if (error) {
@@ -238,7 +243,7 @@ const InspectionForm = ({ initialInspection, onClose }) => {
           </button>
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleCancel}
             className="bg-gray-300 text-black p-2 rounded hover:bg-gray-400"
           >
             Cancel

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
 import InspectionForm from '../components/views/InspectionForm';
@@ -8,6 +8,10 @@ import * as useInspections from '../hooks/useInspections';
 
 // Mock the hooks
 jest.mock('../hooks/useInspections');
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'),
+  useNavigate: jest.fn(),
+}));
 
 const queryClient = new QueryClient();
 
@@ -24,6 +28,8 @@ const renderWithRouter = (ui, { route = '/hives/1/inspections' } = {}) => {
 };
 
 describe('InspectionForm', () => {
+  const mockNavigate = jest.fn();
+
   beforeEach(() => {
     useInspections.useCreateInspection.mockReturnValue({
       mutateAsync: jest.fn(),
@@ -35,6 +41,11 @@ describe('InspectionForm', () => {
       isPending: false,
       isError: false,
     });
+    useNavigate.mockReturnValue(mockNavigate);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   test('renders new inspection form correctly', () => {
@@ -72,8 +83,7 @@ describe('InspectionForm', () => {
       isError: false,
     });
 
-    const onCloseMock = jest.fn();
-    renderWithRouter(<InspectionForm onClose={onCloseMock} />);
+    renderWithRouter(<InspectionForm />);
 
     fireEvent.change(screen.getByLabelText('Date:'), { target: { value: '2023-05-01' } });
     fireEvent.change(screen.getByLabelText('Overall Health:'), { target: { value: 'Good' } });
@@ -92,7 +102,7 @@ describe('InspectionForm', () => {
           notes: 'Test notes',
         }),
       });
-      expect(onCloseMock).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('/hives/1');
     });
   });
 
@@ -113,6 +123,7 @@ describe('InspectionForm', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Failed to submit inspection: Submission failed')).toBeInTheDocument();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -132,8 +143,7 @@ describe('InspectionForm', () => {
       notes: 'Initial notes',
     };
 
-    const onCloseMock = jest.fn();
-    renderWithRouter(<InspectionForm initialInspection={mockInspection} onClose={onCloseMock} />);
+    renderWithRouter(<InspectionForm initialInspection={mockInspection} />);
 
     fireEvent.change(screen.getByLabelText('Notes:'), { target: { value: 'Updated notes' } });
 
@@ -150,7 +160,7 @@ describe('InspectionForm', () => {
           notes: 'Updated notes',
         }),
       });
-      expect(onCloseMock).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('/hives/1');
     });
   });
 
@@ -178,6 +188,7 @@ describe('InspectionForm', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Failed to submit inspection: Update failed')).toBeInTheDocument();
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
@@ -196,5 +207,13 @@ describe('InspectionForm', () => {
     const submitButton = screen.getByText('Submitting...');
 
     expect(submitButton).toBeDisabled();
+  });
+
+  test('navigates back to hive details when cancel button is clicked', () => {
+    renderWithRouter(<InspectionForm />);
+
+    fireEvent.click(screen.getByText('Cancel'));
+
+    expect(mockNavigate).toHaveBeenCalledWith('/hives/1');
   });
 });

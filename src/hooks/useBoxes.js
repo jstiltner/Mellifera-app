@@ -16,6 +16,9 @@ export const useCreateBox = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(['boxes']);
     },
+    onError: (error) => {
+      console.error('Error creating box:', error);
+    },
   });
 };
 
@@ -24,14 +27,19 @@ export const useUpdateBox = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, boxData }) => {x
+    mutationFn: async ({ id, boxData }) => {
+      console.log('Updating box:', id, boxData);
       const response = await axios.put(`/api/boxes/${id}`, boxData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Box updated successfully:', data);
       queryClient.invalidateQueries(['boxes']);
+    },
+    onError: (error) => {
+      console.error('Error updating box:', error);
     },
   });
 };
@@ -49,6 +57,9 @@ export const useDeleteBox = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['boxes']);
+    },
+    onError: (error) => {
+      console.error('Error deleting box:', error);
     },
   });
 };

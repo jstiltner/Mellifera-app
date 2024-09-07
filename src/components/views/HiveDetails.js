@@ -222,6 +222,7 @@ const HiveDetails = () => {
           onAddBox={handleAddBox}
           onUpdateBox={handleUpdateBox}
           onDeleteBox={handleDeleteBox}
+          closeModal={setIsBoxModalOpen}
         />
       </Modal>
     </div>

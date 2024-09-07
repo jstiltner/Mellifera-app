@@ -48,7 +48,7 @@ router.post('/', auth, async (req, res) => {
 // @route   PUT api/boxes/:id
 // @desc    Update a box
 // @access  Private
-router.put('/boxes/:id', auth, async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
     const { name, type, frames, conditions, boxNumber, notes } = req.body;
@@ -83,7 +83,7 @@ router.put('/boxes/:id', auth, async (req, res) => {
 // @route   DELETE api/boxes/:id
 // @desc    Delete a box
 // @access  Private
-router.delete('/boxes/:id', auth, async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
 
