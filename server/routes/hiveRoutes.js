@@ -9,7 +9,7 @@ const Apiary = require('../models/Apiary');
  * /api/hives:
  *   get:
  *     summary: Get all hives with pagination
- *     description: Retrieves a paginated list of hives for the authenticated user.
+ *     description: Retrieves a paginated list of hives for the authenticated user. Can filter by apiaryId.
  *     tags: [Hives]
  *     security:
  *       - bearerAuth: []
@@ -18,12 +18,20 @@ const Apiary = require('../models/Apiary');
  *         name: page
  *         schema:
  *           type: integer
- *         description: Page number (default: 1)
+ *         description: >
+ *           Page number (default: 1)
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
- *         description: Number of items per page (default: 10)
+ *         description: >
+ *           Number of items per page (default: 10)
+ *       - in: query
+ *         name: apiaryId
+ *         schema:
+ *           type: string
+ *         description: >
+ *           ID of the apiary to filter hives (optional)
  *     responses:
  *       200:
  *         description: Hives retrieved successfully
@@ -42,6 +50,12 @@ const Apiary = require('../models/Apiary');
  *                   type: integer
  *                 totalHives:
  *                   type: integer
+ *       404:
+ *         description: Apiary not found or unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  *       500:
  *         description: Server error
  *         content:
@@ -54,16 +68,30 @@ router.get('/', auth, async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const apiaryId = req.query.apiaryId;  
 
-    const apiaryIds = await Apiary.find({ parent: req.user }).distinct('_id');
+    let query = {};
 
-    const hives = await Hive.find({ parent: { $in: apiaryIds } })
+    if (apiaryId) {
+      // Check if the apiary belongs to the user
+      const apiary = await Apiary.findOne({ _id: apiaryId, parent: req.user });
+      if (!apiary) {
+        return res.status(404).json({ error: 'Not Found', message: 'Apiary not found or unauthorized' });
+      }
+      query.parent = apiaryId;
+    } else {
+      // If no apiaryId is provided, fetch hives from all apiaries belonging to the user
+      const apiaryIds = await Apiary.find({ parent: req.user }).distinct('_id');
+      query.parent = { $in: apiaryIds };
+    }
+
+    const hives = await Hive.find(query)
       .populate('parent', 'name location')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
 
-    const totalHives = await Hive.countDocuments({ parent: { $in: apiaryIds } });
+    const totalHives = await Hive.countDocuments(query);
 
     res.json({
       hives,
@@ -117,7 +145,7 @@ router.get('/current', auth, async (req, res) => {
       return res.status(404).json({ error: 'Not Found', message: 'No hives found for the user' });
     }
 
-    res.json({ hiveId: hive._id });
+    res.json({ hiveId: hive._id.toString() });
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
@@ -165,10 +193,33 @@ router.get('/:id', auth, async (req, res) => {
       _id: req.params.id,
       parent: { $in: await Apiary.find({ parent: req.user }).distinct('_id') },
     }).populate('parent', 'name location');
+
     if (!hive) {
       return res.status(404).json({ error: 'Not Found', message: 'Hive not found' });
     }
-    res.json(hive);
+
+    // Convert the hive document to a plain JavaScript object
+    const hiveObject = hive.toObject();
+    
+    // Ensure _id is a string
+    hiveObject._id = hiveObject._id.toString();
+    
+    // Convert all nested ObjectIds to strings
+    const convertIds = (obj) => {
+      for (let key in obj) {
+        if (obj[key] && typeof obj[key] === 'object') {
+          if (obj[key]._bsontype === 'ObjectID') {
+            obj[key] = obj[key].toString();
+          } else {
+            convertIds(obj[key]);
+          }
+        }
+      }
+    };
+    
+    convertIds(hiveObject);
+
+    res.json(hiveObject);
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }

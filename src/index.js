@@ -13,6 +13,7 @@ import HiveDetails from './components/views/HiveDetails';
 import InspectionForm from './components/views/InspectionForm';
 import InspectionReview from './components/views/InspectionReview';
 import AuthenticatedQueryClientProvider from './hooks/AuthenticatedQueryClientProvider';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Register service worker
 if ('serviceWorker' in navigator && 'SyncManager' in window) {
@@ -24,30 +25,6 @@ if ('serviceWorker' in navigator && 'SyncManager' in window) {
     .catch((error) => {
       console.error('Service Worker registration failed:', error);
     });
-}
-
-// Error Boundary Component
-class ErrorBoundary extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { hasError: false };
-  }
-
-  static getDerivedStateFromError(error) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error, errorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <h1>Something went wrong. Please try refreshing the page.</h1>;
-    }
-
-    return this.props.children;
-  }
 }
 
 const AppWithProviders = () => {
@@ -99,7 +76,9 @@ const AppWithProviders = () => {
                   path="/"
                   element={
                     <ProtectedRoute>
-                      <Dashboard isOnline={isOnline} />
+                      <ErrorBoundary>
+                        <Dashboard isOnline={isOnline} />
+                      </ErrorBoundary>
                     </ProtectedRoute>
                   }
                 />
@@ -136,7 +115,7 @@ const AppWithProviders = () => {
                   }
                 />
                 <Route
-                  path="/hives/:hiveId/inspections/:inspectionId"
+                  path="/inspections/:inspectionId"
                   element={
                     <ProtectedRoute>
                       <InspectionReview isOnline={isOnline}/>

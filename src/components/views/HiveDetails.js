@@ -18,12 +18,12 @@ const InspectionDetail = ({ inspection, hiveId }) => {
 
   const handleClick = (e) => {
     e.preventDefault();
-    navigate(`/hives/${hiveId}/inspections/${inspection._id}`);
+    navigate(`/inspections/${inspection._id}`);
   };
 
   return (
     <Link 
-      to={`/hives/${hiveId}/inspections/${inspection._id}`} 
+      to={`/inspections/${inspection._id}`} 
       onClick={handleClick}
       className="block mb-4 p-4 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
     >
@@ -121,7 +121,15 @@ const HiveDetails = () => {
     }
   };
 
-  const boxCount = Array.isArray(hive.children) ? hive.children.length : 0;
+  const handleRefetchInspections = async () => {
+    try {
+      await refetchInspections();
+    } catch (error) {
+      errorToast(error, 'Error refreshing inspections');
+    }
+  };
+
+  const boxCount = hive.children?.length || 0;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -140,7 +148,7 @@ const HiveDetails = () => {
         </h2>
         {boxCount > 0 ? (
           <ul className="list-disc pl-5 mb-4">
-            {hive.children.map((box, index) => (
+            {hive.children?.map((box, index) => (
               <li key={box._id || index} className="mb-1">
                 Box {box.boxNumber}: {box.type} ({box.frames} frames)
                 <Button
@@ -149,6 +157,7 @@ const HiveDetails = () => {
                     setSelectedBox(box);
                     setIsBoxModalOpen(true);
                   }}
+                  aria-label={`Edit box ${box.boxNumber}`}
                 >
                   Edit
                 </Button>
@@ -164,6 +173,7 @@ const HiveDetails = () => {
             setSelectedBox(null);
             setIsBoxModalOpen(true);
           }}
+          aria-label="Add new box"
         >
           Add Box
         </Button>
@@ -174,7 +184,8 @@ const HiveDetails = () => {
           <h2 className="text-2xl font-semibold">Recent Inspections</h2>
           <Button
             className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-            onClick={() => refetchInspections()}
+            onClick={handleRefetchInspections}
+            aria-label="Refresh inspections"
           >
             Refresh Inspections
           </Button>
@@ -189,7 +200,7 @@ const HiveDetails = () => {
           <p className="mb-4">No recent inspections.</p>
         )}
         <Link to={`/hives/${id}/add-inspection`}>
-          <Button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+          <Button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" aria-label="Add new inspection">
             Add Inspection
           </Button>
         </Link>

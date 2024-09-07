@@ -15,7 +15,7 @@ const VoiceCommander = () => {
   const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
   const navigate = useNavigate();
   const createHiveMutation = useCreateHive();
-  const { data: apiaries } = useHives();
+  const { data: apiaries, isLoading: isLoadingApiaries, isError: isApiariesError } = useHives({});
   const { playSuccessSound, playErrorSound, playNotificationSound } = useAudioFeedback();
 
   useEffect(() => {
@@ -60,8 +60,10 @@ const VoiceCommander = () => {
               apiaryId: apiaries[0]?._id, 
               hiveData: { name: 'New Voice Hive' }
             });
+          } else {
+            sayCommand('Sorry, I couldn\'t add a hive because no apiaries were found. Please create an apiary first.');
+            playErrorSound();
           }
-          playSuccessSound();
           break;
         case 'showApiaries':
           navigate('/apiaries');
@@ -157,6 +159,14 @@ const VoiceCommander = () => {
         {error && <p className="mt-2 text-red-600">{error}</p>}
       </div>
     );
+  }
+
+  if (isLoadingApiaries) {
+    return <div>Loading apiaries...</div>;
+  }
+
+  if (isApiariesError) {
+    return <div>Error loading apiaries. Please try again later.</div>;
   }
 
   return (

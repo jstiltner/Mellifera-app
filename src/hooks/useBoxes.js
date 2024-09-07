@@ -24,7 +24,7 @@ export const useUpdateBox = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, boxData }) => {
+    mutationFn: async ({ id, boxData }) => {x
       const response = await axios.put(`/api/boxes/${id}`, boxData, {
         headers: { Authorization: `Bearer ${token}` },
       });

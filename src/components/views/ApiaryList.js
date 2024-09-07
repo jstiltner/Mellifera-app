@@ -13,10 +13,7 @@ const ApiaryList = () => {
   const [selectedApiaryId, setSelectedApiaryId] = useState(null);
 
   const queryClient = useQueryClient();
-  const { data: apiaries = [], isLoading, isError } = useApiaries({
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    cacheTime: 15 * 60 * 1000, // 15 minutes
-  });
+  const { data: apiaries = [] } = useApiaries();
   const createApiaryMutation = useCreateApiary();
   const createHiveMutation = useCreateHive();
 
@@ -37,7 +34,6 @@ const ApiaryList = () => {
         queryClient.invalidateQueries(['hives']);
         handleCloseModal();
       },
-      // Implement optimistic update
       onMutate: async (newHive) => {
         await queryClient.cancelQueries(['apiaries']);
         const previousApiaries = queryClient.getQueryData(['apiaries']);
@@ -61,7 +57,6 @@ const ApiaryList = () => {
       onSuccess: () => {
         queryClient.invalidateQueries(['apiaries']);
       },
-      // Implement optimistic update
       onMutate: async (newApiary) => {
         await queryClient.cancelQueries(['apiaries']);
         const previousApiaries = queryClient.getQueryData(['apiaries']);
@@ -73,9 +68,6 @@ const ApiaryList = () => {
       },
     });
   };
-
-  if (isLoading) return <div>Loading...</div>;
-  if (isError) return <div>Error fetching apiaries</div>;
 
   return (
     <>

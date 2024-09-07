@@ -7,7 +7,6 @@ const { getReportData } = require('../reports');
 const auth = require('../middleware/auth');
 const User = require('../models/User');
 const Apiary = require('../models/Apiary');
-const mongoose = require('mongoose');
 
 const predictor = new HiveOutcomePredictor();
 

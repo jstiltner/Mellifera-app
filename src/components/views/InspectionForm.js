@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useCreateInspection, useUpdateInspection, useDeleteInspection } from '../../hooks/useInspections';
+import { useParams } from 'react-router-dom';
+import ErrorMessage from '../ErrorMessage';
 
-const InspectionForm = ({ initialInspection, onClose }) => {
-  const { id: hiveIdString } = useParams();
-  const hiveId = parseInt(hiveIdString, 10);
-  const navigate = useNavigate();
+const InspectionForm = ({ initialInspection, onSubmit, onClose }) => {
+  const { hiveId } = useParams();
+  const [error, setError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -28,10 +28,6 @@ const InspectionForm = ({ initialInspection, onClose }) => {
     }
   }, [initialInspection]);
 
-  const createInspection = useCreateInspection();
-  const updateInspection = useUpdateInspection();
-  const deleteInspection = useDeleteInspection();
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prevState => ({
@@ -40,41 +36,39 @@ const InspectionForm = ({ initialInspection, onClose }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (initialInspection) {
-      updateInspection.mutate(
-        { hiveId, inspectionId: initialInspection._id, inspectionData: formData },
-        {
-          onSuccess: () => {
-            onClose();
-          },
-        }
-      );
-    } else {
-      createInspection.mutate(
-        { hiveId, inspectionData: formData },
-        {
-          onSuccess: () => {
-            navigate(`/hives/${hiveId}`);
-          },
-        }
-      );
+    setIsSubmitting(true);
+    setError(null);
+
+    if (!hiveId) {
+      setError('Invalid hive ID. Please check the URL and try again.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      await onSubmit(formData);
+      onClose();
+    } catch (error) {
+      console.error('Failed to submit inspection:', error);
+      setError(`Failed to submit inspection: ${error.message}`);
+      
+      // Handle offline submission
+      if (!navigator.onLine) {
+        const offlineInspection = { ...formData, isOffline: true, offlineAction: initialInspection ? 'update' : 'create' };
+        localStorage.setItem(`inspection_${hiveId}_${initialInspection ? initialInspection._id : 'new'}`, JSON.stringify(offlineInspection));
+        alert('Inspection saved offline. It will be synced when you are back online.');
+        onClose();
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleDelete = () => {
-    if (initialInspection && window.confirm('Are you sure you want to delete this inspection?')) {
-      deleteInspection.mutate(
-        { hiveId, inspectionId: initialInspection._id },
-        {
-          onSuccess: () => {
-            onClose();
-          },
-        }
-      );
-    }
-  };
+  if (error) {
+    return <ErrorMessage message={error} />;
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-4">
@@ -82,6 +76,7 @@ const InspectionForm = ({ initialInspection, onClose }) => {
         {initialInspection ? 'Edit' : 'New'} Inspection for Hive {hiveId}
       </h2>
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Date input */}
         <div>
           <label className="block mb-1">Date:</label>
           <input
@@ -94,6 +89,7 @@ const InspectionForm = ({ initialInspection, onClose }) => {
           />
         </div>
 
+        {/* Overall Health select */}
         <div>
           <label className="block mb-1">Overall Health:</label>
           <select
@@ -112,6 +108,7 @@ const InspectionForm = ({ initialInspection, onClose }) => {
           </select>
         </div>
 
+        {/* Checkbox group */}
         <div className="space-y-2">
           <label className="flex items-center">
             <input
@@ -165,6 +162,7 @@ const InspectionForm = ({ initialInspection, onClose }) => {
           </label>
         </div>
 
+        {/* Diseases Seen input */}
         <div>
           <label className="block mb-1">Diseases Seen:</label>
           <input
@@ -177,6 +175,7 @@ const InspectionForm = ({ initialInspection, onClose }) => {
           />
         </div>
 
+        {/* Pests Seen input */}
         <div>
           <label className="block mb-1">Pests Seen:</label>
           <input
@@ -189,6 +188,7 @@ const InspectionForm = ({ initialInspection, onClose }) => {
           />
         </div>
 
+        {/* Hive Temperament select */}
         <div>
           <label className="block mb-1">Hive Temperament:</label>
           <select
@@ -204,6 +204,7 @@ const InspectionForm = ({ initialInspection, onClose }) => {
           </select>
         </div>
 
+        {/* Weather Conditions input */}
         <div>
           <label className="block mb-1">Weather Conditions:</label>
           <input
@@ -216,6 +217,7 @@ const InspectionForm = ({ initialInspection, onClose }) => {
           />
         </div>
 
+        {/* Notes textarea */}
         <div>
           <label className="block mb-1">Notes:</label>
           <textarea
@@ -228,24 +230,22 @@ const InspectionForm = ({ initialInspection, onClose }) => {
           ></textarea>
         </div>
 
+        {/* Submit button */}
         <div className="flex justify-between">
           <button
             type="submit"
             className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-            disabled={createInspection.isLoading || updateInspection.isLoading}
+            disabled={isSubmitting}
           >
-            {(createInspection.isLoading || updateInspection.isLoading) ? 'Submitting...' : (initialInspection ? 'Update' : 'Submit') + ' Inspection'}
+            {isSubmitting ? 'Submitting...' : `${initialInspection ? 'Update' : 'Submit'} Inspection`}
           </button>
-          {initialInspection && (
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="bg-red-500 text-white p-2 rounded hover:bg-red-600"
-              disabled={deleteInspection.isLoading}
-            >
-              {deleteInspection.isLoading ? 'Deleting...' : 'Delete Inspection'}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className="bg-gray-300 text-black p-2 rounded hover:bg-gray-400"
+          >
+            Cancel
+          </button>
         </div>
       </form>
     </div>

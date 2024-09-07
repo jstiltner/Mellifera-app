@@ -5,18 +5,20 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 require('dotenv').config();
 
-const routes = require('./routes/routes');
-const authRoutes = require('./routes/auth');
-const hiveRoutes = require('./routes/hiveRoutes');
-const inspectionRoutes = require('./routes/inspectionRoutes');
-const voiceRoutes = require('./routes/voiceRoutes');
-const boxRoutes = require('./routes/boxRoutes');
-
+const routes = require('./routes/index');
 const passport = require('passport');
 const session = require('express-session');
 require('./config/passport');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./swagger');
+
+// Import all models
+require('./models/Box');
+require('./models/Hive');
+require('./models/Inspection');
+require('./models/Apiary');
+require('./models/User');
+// Add any other models you have
 
 const port = process.env.PORT || 3000;
 const DIST_DIR = path.join(__dirname, '../dist');
@@ -36,8 +38,12 @@ database.once('connected', () => {
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Update CORS configuration
+app.use(cors({
+  origin: 'http://localhost:3000', // Allow requests from this origin
+  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+}));
+
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(
@@ -56,22 +62,16 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+// Routes
+app.use('/api', routes);
+
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
-// Routes
-app.use('/api', routes);
-app.use('/api/hives', hiveRoutes);
-app.use('/api', inspectionRoutes); // Updated this line for consistency
-app.use('/auth', authRoutes);
-app.use('/api/voice', voiceRoutes);
-app.use('/api', boxRoutes);
+// Auth routes
+app.use('/auth', require('./routes/auth'));
 
-// Serve static files
-app.use(express.static(DIST_DIR));
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.post('/api/sync', async (req, res) => {
+app.post('/api2/sync', async (req, res) => {
   const data = req.body;
   // Save data to MongoDB
   // Assuming you have a Mongoose model named 'DataModel'
@@ -83,6 +83,11 @@ app.post('/api/sync', async (req, res) => {
   }
 });
 
+// Serve static files
+app.use(express.static(DIST_DIR));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Catch-all route handler
 app.get('*', (req, res) => {
   res.sendFile(HTML_FILE);
 });

@@ -8,7 +8,7 @@ const auth = require('../middleware/auth');
 // @route   POST api/boxes
 // @desc    Create a new box
 // @access  Private
-router.post('/boxes', auth, async (req, res) => {
+router.post('/', auth, async (req, res) => {
   try {
     const { name, type, frames, conditions, boxNumber, hiveId } = req.body;
 

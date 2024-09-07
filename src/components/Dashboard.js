@@ -5,66 +5,48 @@ import ApiaryList from './views/ApiaryList';
 import ApiaryForm from './views/ApiaryForm';
 import VoiceCommander from './VoiceCommander';
 import { useAuthContext } from '../context/AuthContext';
-import { useApiaries } from '../hooks/useApiaries';
-import axios from 'axios';
+import { useApiaries, useCreateApiary } from '../hooks/useApiaries';
+import ErrorMessage from './ErrorMessage';
+import LoadingSpinner from './LoadingSpinner';
 
 const Dashboard = () => {
-  const { user } = useAuthContext();
+  const { user, token } = useAuthContext();
   const [showApiaryForm, setShowApiaryForm] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data: apiaries, isLoading: isApiariesLoading, error: apiariesError } = useApiaries();
+  const { data: apiaries, isLoading, error, refetch } = useApiaries();
+  const createApiaryMutation = useCreateApiary();
 
   useEffect(() => {
-    if (isApiariesLoading) {
-      console.log('Loading apiaries...');
-    } else if (apiariesError) {
-      console.error('Error loading apiaries:', apiariesError);
-    } else {
-      console.log('Apiaries loaded successfully:', apiaries);
+    if (token) {
+      refetch();
     }
+  }, [token, refetch]);
 
-    return () => {
-      console.log('Clean up on component unmount or before next effect run');
-    };
-  }, [apiaries, isApiariesLoading, apiariesError]);
+  useEffect(() => {
+    console.log('Apiaries data:', apiaries);
+  }, [apiaries]);
 
   const handleApiaryCreate = async (newApiary) => {
-    const previousApiaries = queryClient.getQueryData(['apiaries', user._id]);
-
-    queryClient.setQueryData(['apiaries', user._id], (oldData) => [...(oldData || []), newApiary]);
-
-    try {
-      await axios.post('/api/apiaries', newApiary);
-      setShowApiaryForm(false);
-      console.log('New apiary created:', newApiary);
-    } catch (error) {
-      console.error('Failed to create apiary:', error);
-      queryClient.setQueryData(['apiaries', user._id], previousApiaries);
-      // Show an error message to the user
-    }
+    createApiaryMutation.mutate(newApiary, {
+      onSuccess: () => {
+        setShowApiaryForm(false);
+        console.log('New apiary created:', newApiary);
+        queryClient.invalidateQueries({ queryKey: ['apiaries'] });
+      },
+      onError: (error) => {
+        console.error('Failed to create apiary:', error);
+        // Show an error message to the user
+      },
+    });
   };
 
-  // Render logic based on loading or error states
-  if (isApiariesLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
+  if (isLoading) return <LoadingSpinner />;
+  if (error) {
+    console.error('Error fetching apiaries:', error);
+    return <ErrorMessage message={`Error fetching apiaries: ${error.message}`} />;
   }
 
-  if (apiariesError) {
-    return (
-      <div className="text-red-600 p-4">
-        <h2 className="text-xl font-bold">An error occurred:</h2>
-        <p>{apiariesError.message}</p>
-        <p>Please try refreshing the page or contact support if the problem persists.</p>
-      </div>
-    );
-  }
-
-  // Main component rendering
   return (
     <div className="flex flex-col h-screen bg-gray-100">
       <header className="bg-white shadow-md p-4 mb-4">
@@ -81,10 +63,14 @@ const Dashboard = () => {
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden px-4 pb-4">
         <div className="w-full md:w-1/3 md:pr-4 mb-4 md:mb-0 flex flex-col">
           <div className="bg-white rounded-lg shadow-md p-4 flex-grow overflow-y-auto apiary-list">
-            <ApiaryList apiaries={apiaries} />
+            {Array.isArray(apiaries) && apiaries.length > 0 ? (
+              <ApiaryList apiaries={apiaries} />
+            ) : (
+              <p>No apiaries data available</p>
+            )}
           </div>
           <div className="bg-white rounded-lg shadow-md p-4 mt-4">
-            {(apiaries && apiaries.length === 0) || showApiaryForm ? (
+            {(!apiaries || apiaries.length === 0 || showApiaryForm) ? (
               <ApiaryForm onApiaryCreate={handleApiaryCreate} />
             ) : (
               <button
@@ -99,7 +85,7 @@ const Dashboard = () => {
         <div className="w-full md:w-2/3 h-96 md:h-auto">
           <div className="bg-white rounded-lg shadow-md p-4 h-full apiary-map">
             <div className="h-full relative">
-              <ApiaryMap />
+              <ApiaryMap apiaries={apiaries || []} />
             </div>
           </div>
         </div>

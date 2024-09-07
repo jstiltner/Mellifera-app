@@ -6,9 +6,9 @@ const inspectionsStore = localForage.createInstance({
   name: 'inspections',
 });
 
-const fetchInspections = async (hiveId) => {
+const fetchInspections = async ({ hiveId }) => {
   try {
-    const { data } = await axios.get(`/api/hives/${hiveId}/inspections`);
+    const { data } = await axios.get(`/api/inspections/${hiveId}`);
     await inspectionsStore.setItem(`hive_${hiveId}`, data);
     return data;
   } catch (error) {
@@ -20,9 +20,9 @@ const fetchInspections = async (hiveId) => {
   }
 };
 
-const fetchInspection = async (hiveId, inspectionId) => {
+const fetchInspection = async (inspectionId) => {
   try {
-    const { data } = await axios.get(`/api/hives/${hiveId}/inspections/${inspectionId}`);
+    const { data } = await axios.get(`/api/inspections/inspectionReport/${inspectionId}`);
     return data;
   } catch (error) {
     if (!navigator.onLine) {
@@ -38,7 +38,7 @@ const fetchInspection = async (hiveId, inspectionId) => {
 
 const createInspection = async ({ hiveId, inspectionData }) => {
   if (navigator.onLine) {
-    const { data } = await axios.post(`/api/hives/${hiveId}/inspections`, inspectionData);
+    const { data } = await axios.post(`/api/inspections/${hiveId}`, inspectionData);
     const cachedInspections = await inspectionsStore.getItem(`hive_${hiveId}`) || [];
     await inspectionsStore.setItem(`hive_${hiveId}`, [...cachedInspections, data]);
     return data;
@@ -106,13 +106,13 @@ export const useInspections = (hiveId) => {
   });
 };
 
-export const useInspection = (hiveId, inspectionId) => {
+export const useInspection = (inspectionId) => {
   const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: ['inspection', hiveId, inspectionId],
-    queryFn: () => fetchInspection(hiveId, inspectionId),
-    enabled: !!hiveId && !!inspectionId,
+    queryKey: ['inspection' , inspectionId],
+    queryFn: () => fetchInspection(inspectionId),
+    // enabled: !!hiveId && !!inspectionId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     onError: (error) => {
       console.error('Failed to fetch inspection:', error);

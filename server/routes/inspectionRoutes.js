@@ -47,7 +47,7 @@ const Inspection = require('../models/Inspection');
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post('/hives/:hiveId/inspections', auth, async (req, res) => {
+router.post('/:hiveId', auth, async (req, res) => {
   try {
     const { hiveId } = req.params;
     const inspectionData = req.body;
@@ -103,7 +103,7 @@ router.post('/hives/:hiveId/inspections', auth, async (req, res) => {
 
 /**
  * @swagger
- * /api/hives/{hiveId}/inspections:
+ * /api/inspections/{hiveId}:
  *   get:
  *     summary: Get inspections for a specific hive
  *     description: Retrieves a list of all inspections for a specific hive, sorted by date in descending order.
@@ -139,7 +139,7 @@ router.post('/hives/:hiveId/inspections', auth, async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get('/hives/:hiveId/inspections', auth, async (req, res) => {
+router.get('/:hiveId', auth, async (req, res) => {
   try {
     const { hiveId } = req.params;
 
@@ -162,6 +162,65 @@ router.get('/hives/:hiveId/inspections', auth, async (req, res) => {
   } catch (error) {
     console.error('Error fetching inspections:', error);
     res.status(400).json({ error: 'Bad Request', message: 'Error fetching inspections', details: error.message });
+  }
+});
+
+/**
+ * @swagger
+ * /api/hives/{hiveId}/inspections/{id}:
+ *   get:
+ *     summary: Get a specific inspection
+ *     description: Retrieves a specific inspection record for a hive.
+ *     tags: [Inspections]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: hiveId
+ *         required: true
+ *         description: Unique identifier of the hive
+ *         schema:
+ *           type: string
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: Unique identifier of the inspection
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Inspection details
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Inspection'
+ *       404:
+ *         description: Inspection or Hive not found or unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       400:
+ *         description: Bad request
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get('/inspectionReport/:id', auth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const inspection = await Inspection.findOne({ _id: id });
+
+    if (!inspection) {
+      return res.status(404).json({ error: 'Not Found', message: 'Inspection not found or unauthorized' });
+    }
+
+    res.status(200).json(inspection);
+  } catch (error) {
+    console.error('Error fetching inspection:', error);
+    res.status(400).json({ error: 'Bad Request', message: 'Error fetching inspection', details: error.message });
   }
 });
 

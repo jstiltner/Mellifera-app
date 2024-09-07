@@ -1,67 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useQuery } from '@tanstack/react-query';
+import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { useQueryClient } from '@tanstack/react-query';
+import { useUpdateHive } from '../hooks/useHives';
+import { useUpdateBox } from '../hooks/useBoxes';
 
-const fetchApiaries = async () => {
-  const response = await axios.get('/api/apiaries');
-  console.log('Fetched apiaries:', response.data); // Debug log
-  return response.data;
-};
+const ApiaryMap = ({ apiaries }) => {
+  const queryClient = useQueryClient();
+  const updateHiveMutation = useUpdateHive();
+  const updateBoxMutation = useUpdateBox();
 
-const ApiaryMap = () => {
-  const [draggedHive, setDraggedHive] = useState(null);
-  const [draggedBox, setDraggedBox] = useState(null);
-
-  const {
-    data: apiaries,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['apiaries'],
-    queryFn: fetchApiaries,
-  });
-
-  useEffect(() => {
-    console.log('Apiaries data:', apiaries); // Debug log
-  }, [apiaries]);
-
-  const handleHiveDragStart = (hive) => {
-    setDraggedHive(hive);
-  };
-
-  const handleHiveDragEnd = (event) => {
+  const handleHiveDragEnd = (event, hive) => {
     const { lat, lng } = event.target.getLatLng();
-    const updatedHive = { ...draggedHive, latitude: lat, longitude: lng };
+    const updatedHive = { ...hive, latitude: lat, longitude: lng };
 
-    axios
-      .put(`/api/hives/${draggedHive._id}`, updatedHive)
-      .then((response) => {
-        console.log('Hive position updated:', response.data);
-        setDraggedHive(null);
-      })
-      .catch((error) => {
-        console.error('Error updating hive position:', error);
-      });
+    updateHiveMutation.mutate(updatedHive, {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['apiaries']);
+        queryClient.invalidateQueries(['hives']);
+      },
+      onMutate: async (newHive) => {
+        await queryClient.cancelQueries(['apiaries']);
+        const previousApiaries = queryClient.getQueryData(['apiaries']);
+        queryClient.setQueryData(['apiaries'], (old) =>
+          old.map((apiary) => ({
+            ...apiary,
+            hives: apiary.hives.map((h) => (h._id === newHive._id ? newHive : h)),
+          }))
+        );
+        return { previousApiaries };
+      },
+      onError: (err, newHive, context) => {
+        queryClient.setQueryData(['apiaries'], context.previousApiaries);
+      },
+    });
   };
 
-  const handleBoxDragStart = (hive, box) => {
-    setDraggedBox({ hive, box });
-  };
-
-  const handleBoxDragEnd = (event) => {
+  const handleBoxDragEnd = (event, hive, box) => {
     const { lat, lng } = event.target.getLatLng();
-    const updatedBox = { ...draggedBox.box, latitude: lat, longitude: lng };
+    const updatedBox = { ...box, latitude: lat, longitude: lng };
 
-    axios
-      .put(`/api/boxes/${draggedBox.box._id}`, updatedBox)
-      .then((response) => {
-        console.log('Box position updated:', response.data);
-        setDraggedBox(null);
-      })
-      .catch((error) => {
-        console.error('Error updating box position:', error);
-      });
+    updateBoxMutation.mutate(updatedBox, {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['apiaries']);
+        queryClient.invalidateQueries(['hives']);
+        queryClient.invalidateQueries(['boxes']);
+      },
+      onMutate: async (newBox) => {
+        await queryClient.cancelQueries(['apiaries']);
+        const previousApiaries = queryClient.getQueryData(['apiaries']);
+        queryClient.setQueryData(['apiaries'], (old) =>
+          old.map((apiary) => ({
+            ...apiary,
+            hives: apiary.hives.map((h) => 
+              h._id === hive._id 
+                ? { ...h, boxes: h.boxes.map((b) => b._id === newBox._id ? newBox : b) }
+                : h
+            ),
+          }))
+        );
+        return { previousApiaries };
+      },
+      onError: (err, newBox, context) => {
+        queryClient.setQueryData(['apiaries'], context.previousApiaries);
+      },
+    });
   };
 
   const mapStyle = {
@@ -69,9 +71,6 @@ const ApiaryMap = () => {
     width: '100%',
     zIndex: 1,
   };
-
-  if (isLoading) return <div>Loading map...</div>;
-  if (error) return <div>Error loading map: {error.message}</div>;
 
   const centerCoords = apiaries?.[0]
     ? [apiaries[0].latitude ?? 0, apiaries[0].longitude ?? 0]
@@ -100,8 +99,9 @@ const ApiaryMap = () => {
                         key={hive._id}
                         position={[hive.latitude, hive.longitude]}
                         draggable
-                        onDragStart={() => handleHiveDragStart(hive)}
-                        onDragEnd={handleHiveDragEnd}
+                        eventHandlers={{
+                          dragend: (e) => handleHiveDragEnd(e, hive),
+                        }}
                       >
                         <Popup>
                           <h4>{hive.name}</h4>
@@ -113,8 +113,9 @@ const ApiaryMap = () => {
                                   key={box._id}
                                   position={[box.latitude, box.longitude]}
                                   draggable
-                                  onDragStart={() => handleBoxDragStart(hive, box)}
-                                  onDragEnd={handleBoxDragEnd}
+                                  eventHandlers={{
+                                    dragend: (e) => handleBoxDragEnd(e, hive, box),
+                                  }}
                                 >
                                   <Popup>
                                     <h5>Box {box.number}</h5>

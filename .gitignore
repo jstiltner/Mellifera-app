@@ -5,3 +5,7 @@ bin
 server/config/keys.js
 dist/
 ./coverage/
+
+# Vite specific
+*.local
+.vite/

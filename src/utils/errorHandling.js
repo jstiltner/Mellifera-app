@@ -19,3 +19,7 @@ export const globalMutationErrorHandler = (error) => {
   console.error('Global mutation error:', error);
   toast.error(`A global error occurred: ${error.message}`);
 };
+
+export const errorToast = (message) => {
+  toast.error(message);
+};
