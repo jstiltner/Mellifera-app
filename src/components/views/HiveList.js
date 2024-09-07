@@ -95,26 +95,34 @@ const HiveList = () => {
               key={hive._id}
               className="border rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow duration-200"
             >
-              <Link
-                to={`/hives/${hive._id}`}
-                className="block focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50"
-              >
-                <h3 className="text-xl font-semibold mb-2">{hive.name}</h3>
-                <dl>
-                  <div>
-                    <dt className="sr-only">Queen ID</dt>
-                    <dd className="text-gray-600">Queen ID: {hive.queenId}</dd>
-                  </div>
-                  <div>
-                    <dt className="sr-only">Status</dt>
-                    <dd className="text-gray-600">Status: {hive.status}</dd>
-                  </div>
-                  <div>
-                    <dt className="sr-only">Notes</dt>
-                    <dd className="text-gray-600 truncate">Notes: {hive.notes}</dd>
-                  </div>
-                </dl>
-              </Link>
+              <div className="flex justify-between items-start mb-2">
+                <Link
+                  to={`/hives/${hive._id}`}
+                  className="text-xl font-semibold hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50"
+                >
+                  {hive.name}
+                </Link>
+                <Link
+                  to={`/hives/${hive._id}/edit`}
+                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded text-sm focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-opacity-50"
+                >
+                  Edit
+                </Link>
+              </div>
+              <dl>
+                <div>
+                  <dt className="sr-only">Queen ID</dt>
+                  <dd className="text-gray-600">Queen ID: {hive.queenId}</dd>
+                </div>
+                <div>
+                  <dt className="sr-only">Status</dt>
+                  <dd className="text-gray-600">Status: {hive.status}</dd>
+                </div>
+                <div>
+                  <dt className="sr-only">Notes</dt>
+                  <dd className="text-gray-600 truncate">Notes: {hive.notes}</dd>
+                </div>
+              </dl>
             </li>
           ))}
         </ul>

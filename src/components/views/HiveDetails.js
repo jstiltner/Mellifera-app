@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Button from '../Button';
@@ -6,12 +6,22 @@ import BoxForm from '../BoxForm';
 import Modal from '../Modal';
 import LoadingSpinner from '../LoadingSpinner';
 import { useInspections } from '../../hooks/useInspections';
-import { errorToast } from '../../utils/errorHandling';
-import { fetchHive, addBox, updateBox, deleteBox } from '../../api/hiveApi';
+import { errorToast, successToast } from '../../utils/errorHandling';
+import { fetchHive, addBox, updateBox, deleteBox, updateHive } from '../../api/hiveApi';
 
-const HiveDetail = ({ label, value }) => (
+const HiveDetail = ({ label, value, isEditing, onChange }) => (
   <div className="mb-2">
-    <span className="font-semibold">{label}:</span> {value?.toString() ?? 'N/A'}
+    <span className="font-semibold">{label}:</span>
+    {isEditing ? (
+      <input
+        type="text"
+        value={value?.toString() ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+        className="ml-2 p-1 border rounded"
+      />
+    ) : (
+      <span className="ml-2">{value?.toString() ?? 'N/A'}</span>
+    )}
   </div>
 );
 
@@ -42,11 +52,18 @@ const InspectionDetail = ({ inspection, hiveId }) => {
   );
 };
 
-const HiveDetails = () => {
+const HiveDetails = ({ isEditing: initialIsEditing = false }) => {
   const { id } = useParams();
   const [isBoxModalOpen, setIsBoxModalOpen] = useState(false);
   const [selectedBox, setSelectedBox] = useState(null);
+  const [isEditing, setIsEditing] = useState(initialIsEditing);
+  const [editedHive, setEditedHive] = useState({});
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setIsEditing(initialIsEditing);
+  }, [initialIsEditing]);
 
   const {
     data: hive,
@@ -56,7 +73,7 @@ const HiveDetails = () => {
   } = useQuery({
     queryKey: ['hive', id],
     queryFn: () => fetchHive(id),
-    enabled: !!id, // Only run the query if id is truthy
+    enabled: !!id,
   });
 
   const {
@@ -95,6 +112,23 @@ const HiveDetails = () => {
     },
     onError: (error) => errorToast(error, 'Error deleting box'),
   });
+
+  const updateHiveMutation = useMutation({
+    mutationFn: (updatedHive) => updateHive(id, updatedHive),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['hive', id]);
+      setIsEditing(false);
+      successToast('Hive updated successfully');
+      navigate(`/hives/${id}`);
+    },
+    onError: (error) => errorToast(error, 'Error updating hive'),
+  });
+
+  useEffect(() => {
+    if (hive && isEditing) {
+      setEditedHive({ ...hive });
+    }
+  }, [hive, isEditing]);
 
   if (!id) {
     return <div className="text-red-500 text-center py-4">Invalid Hive ID</div>;
@@ -136,95 +170,164 @@ const HiveDetails = () => {
     refetchInspections();
   };
 
+  const handleEditClick = () => {
+    setIsEditing(true);
+    setEditedHive({ ...hive });
+  };
+
+  const handleSaveClick = () => {
+    updateHiveMutation.mutate(editedHive);
+  };
+
+  const handleCancelClick = () => {
+    setIsEditing(false);
+    setEditedHive({});
+    navigate(`/hives/${id}`);
+  };
+
+  const handleInputChange = (field, value) => {
+    setEditedHive({ ...editedHive, [field]: value });
+  };
+
   const boxCount = hive.children?.length ?? 0;
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">{hive.name}</h1>
-      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h2 className="text-2xl font-semibold mb-4">Hive Details</h2>
-        <HiveDetail label="Type" value={hive.type} />
-        <HiveDetail label="Status" value={hive.status} />
-        <HiveDetail label="Queen Present" value={hive.queenPresent ? 'Yes' : 'No'} />
-        <HiveDetail label="Box Count" value={boxCount} />
-      </div>
-
-      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h2 className="text-2xl font-semibold mb-4">
-          {boxCount === 0 ? 'No boxes' : boxCount === 1 ? '1 box' : `${boxCount} boxes`}
-        </h2>
-        {boxCount > 0 ? (
-          <ul className="list-disc pl-5 mb-4">
-            {hive.children?.map((box, index) => (
-              <li key={box._id || index} className="mb-1">
-                Box {box.boxNumber}: {box.type} ({box.frames} frames)
-                <Button
-                  className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm"
-                  onClick={() => {
-                    setSelectedBox(box);
-                    setIsBoxModalOpen(true);
-                  }}
-                  aria-label={`Edit box ${box.boxNumber}`}
-                >
-                  Edit
-                </Button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mb-4">No boxes added to this hive yet.</p>
-        )}
-        <Button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-          onClick={() => {
-            setSelectedBox(null);
-            setIsBoxModalOpen(true);
-          }}
-          aria-label="Add new box"
-        >
-          Add Box
-        </Button>
-      </div>
-
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold">Recent Inspections</h2>
-          <Button
-            className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-            onClick={handleRefetchInspections}
-            aria-label="Refresh inspections"
-          >
-            Refresh Inspections
-          </Button>
-        </div>
-        {Array.isArray(inspections) && inspections.length > 0 ? (
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">{hive.name}</h1>
+        {isEditing ? (
           <div>
-            {inspections.map((inspection) => (
-              <InspectionDetail key={inspection._id} inspection={inspection} hiveId={id} />
-            ))}
+            <Button
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2"
+              onClick={handleSaveClick}
+            >
+              Save
+            </Button>
+            <Button
+              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+              onClick={handleCancelClick}
+            >
+              Cancel
+            </Button>
           </div>
         ) : (
-          <p className="mb-4">No recent inspections.</p>
-        )}
-        <Link to={`/hives/${id}/add-inspection`}>
-          <Button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" aria-label="Add new inspection">
-            Add Inspection
+          <Button
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+            onClick={handleEditClick}
+          >
+            Edit
           </Button>
-        </Link>
+        )}
+      </div>
+      <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+        <h2 className="text-2xl font-semibold mb-4">Hive Details</h2>
+        <HiveDetail
+          label="Name"
+          value={isEditing ? editedHive.name : hive.name}
+          isEditing={isEditing}
+          onChange={(value) => handleInputChange('name', value)}
+        />
+        <HiveDetail
+          label="Type"
+          value={isEditing ? editedHive.type : hive.type}
+          isEditing={isEditing}
+          onChange={(value) => handleInputChange('type', value)}
+        />
+        <HiveDetail
+          label="Status"
+          value={isEditing ? editedHive.status : hive.status}
+          isEditing={isEditing}
+          onChange={(value) => handleInputChange('status', value)}
+        />
+        <HiveDetail
+          label="Queen Present"
+          value={isEditing ? (editedHive.queenPresent ? 'Yes' : 'No') : (hive.queenPresent ? 'Yes' : 'No')}
+          isEditing={isEditing}
+          onChange={(value) => handleInputChange('queenPresent', value.toLowerCase() === 'yes')}
+        />
+        <HiveDetail label="Box Count" value={boxCount} isEditing={false} />
       </div>
 
-      <Modal isOpen={isBoxModalOpen} onClose={() => {
-        setIsBoxModalOpen(false);
-        setSelectedBox(null);
-      }}>
-        <BoxForm
-          initialBox={selectedBox}
-          onAddBox={handleAddBox}
-          onUpdateBox={handleUpdateBox}
-          onDeleteBox={handleDeleteBox}
-          closeModal={setIsBoxModalOpen}
-        />
-      </Modal>
+      {!isEditing && (
+        <>
+          <div className="bg-white shadow-md rounded-lg p-6 mb-6">
+            <h2 className="text-2xl font-semibold mb-4">
+              {boxCount === 0 ? 'No boxes' : boxCount === 1 ? '1 box' : `${boxCount} boxes`}
+            </h2>
+            {boxCount > 0 ? (
+              <ul className="list-disc pl-5 mb-4">
+                {hive.children?.map((box, index) => (
+                  <li key={box._id || index} className="mb-1">
+                    Box {box.boxNumber}: {box.type} ({box.frames} frames)
+                    <Button
+                      className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm"
+                      onClick={() => {
+                        setSelectedBox(box);
+                        setIsBoxModalOpen(true);
+                      }}
+                      aria-label={`Edit box ${box.boxNumber}`}
+                    >
+                      Edit
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="mb-4">No boxes added to this hive yet.</p>
+            )}
+            <Button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              onClick={() => {
+                setSelectedBox(null);
+                setIsBoxModalOpen(true);
+              }}
+              aria-label="Add new box"
+            >
+              Add Box
+            </Button>
+          </div>
+
+          <div className="bg-white shadow-md rounded-lg p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-semibold">Recent Inspections</h2>
+              <Button
+                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                onClick={handleRefetchInspections}
+                aria-label="Refresh inspections"
+              >
+                Refresh Inspections
+              </Button>
+            </div>
+            {Array.isArray(inspections) && inspections.length > 0 ? (
+              <div>
+                {inspections.map((inspection) => (
+                  <InspectionDetail key={inspection._id} inspection={inspection} hiveId={id} />
+                ))}
+              </div>
+            ) : (
+              <p className="mb-4">No recent inspections.</p>
+            )}
+            <Link to={`/hives/${id}/add-inspection`}>
+              <Button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" aria-label="Add new inspection">
+                Add Inspection
+              </Button>
+            </Link>
+          </div>
+
+          <Modal isOpen={isBoxModalOpen} onClose={() => {
+            setIsBoxModalOpen(false);
+            setSelectedBox(null);
+          }}>
+            <BoxForm
+              initialBox={selectedBox}
+              onAddBox={handleAddBox}
+              onUpdateBox={handleUpdateBox}
+              onDeleteBox={handleDeleteBox}
+              closeModal={setIsBoxModalOpen}
+            />
+          </Modal>
+        </>
+      )}
     </div>
   );
 };

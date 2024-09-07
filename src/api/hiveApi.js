@@ -11,6 +11,15 @@ export const fetchHive = async (hiveId) => {
   }
 };
 
+export const updateHive = async (hiveId, hiveData) => {
+  try {
+    const response = await axios.put(`${API_BASE_URL}/hives/${hiveId}`, hiveData);
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to update hive');
+  }
+};
+
 export const addBox = async (hiveId, boxData) => {
   try {
     const response = await axios.post(`${API_BASE_URL}/hives/${hiveId}/boxes`, boxData);

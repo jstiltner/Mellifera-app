@@ -107,6 +107,14 @@ const AppWithProviders = () => {
                   }
                 />
                 <Route
+                  path="/hives/:id/edit"
+                  element={
+                    <ProtectedRoute>
+                      <HiveDetails isOnline={isOnline} isEditing={true}/>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/hives/:hiveId/add-inspection"
                   element={
                     <ProtectedRoute>

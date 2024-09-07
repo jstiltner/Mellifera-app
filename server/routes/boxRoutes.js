@@ -87,10 +87,16 @@ router.delete('/:id', auth, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check if the box exists and belongs to a hive owned by the user
-    const box = await Box.findOne({
+    // Step 1: Get the Apiary IDs where the parent is the current user
+    const apiaryIds = await Apiary.find({ parent: req.user }).distinct('_id');
+
+    // Step 2: Get the Hive IDs where the parent is one of the apiaries found above
+    const hiveIds = await Hive.find({ parent: { $in: apiaryIds } }).distinct('_id');
+
+    // Step 3: Find and delete the Box where the _id matches the box ID and the parent is one of the hives found above
+    const box = await Box.findOneAndDelete({
       _id: id,
-      parent: { $in: await Hive.find({ parent: { $in: await Apiary.find({ parent: req.user }).distinct('_id') } }).distinct('_id') },
+      parent: { $in: hiveIds },
     });
 
     if (!box) {
@@ -98,15 +104,22 @@ router.delete('/:id', auth, async (req, res) => {
     }
 
     // Remove the box from the hive's children array
-    await Hive.findByIdAndUpdate(box.parent, { $pull: { children: box._id } });
+    const updateResult = await Hive.updateOne(
+      { _id: box.parent },
+      { $pull: { children: box._id } }
+    );
 
-    // Delete the box
-    await box.remove();
+    if (updateResult.nModified === 0) {
+      console.warn(`Box ${id} was not found in the parent hive's children array.`);
+    }
 
-    res.json({ message: 'Box removed' });
+    res.json({ message: 'Box removed successfully' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    if (err.kind === 'ObjectId') {
+      return res.status(400).json({ message: 'Invalid box ID format' });
+    }
+    res.status(500).json({ message: 'Server Error', error: err.message });
   }
 });
 
