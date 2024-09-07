@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
@@ -26,18 +26,13 @@ const renderWithRouter = (ui, { route = '/hives/1/inspections' } = {}) => {
 describe('InspectionForm', () => {
   beforeEach(() => {
     useInspections.useCreateInspection.mockReturnValue({
-      mutate: jest.fn(),
-      isLoading: false,
+      mutateAsync: jest.fn(),
+      isPending: false,
       isError: false,
     });
     useInspections.useUpdateInspection.mockReturnValue({
-      mutate: jest.fn(),
-      isLoading: false,
-      isError: false,
-    });
-    useInspections.useDeleteInspection.mockReturnValue({
-      mutate: jest.fn(),
-      isLoading: false,
+      mutateAsync: jest.fn(),
+      isPending: false,
       isError: false,
     });
   });
@@ -67,49 +62,45 @@ describe('InspectionForm', () => {
     expect(screen.getByLabelText('Queen Seen')).toBeChecked();
     expect(screen.getByLabelText('Notes:')).toHaveValue('Test notes');
     expect(screen.getByText('Update Inspection')).toBeInTheDocument();
-    expect(screen.getByText('Delete Inspection')).toBeInTheDocument();
   });
 
   test('submits new inspection form successfully', async () => {
-    const createMutate = jest.fn();
+    const createMutateAsync = jest.fn().mockResolvedValue({});
     useInspections.useCreateInspection.mockReturnValue({
-      mutate: createMutate,
-      isLoading: false,
+      mutateAsync: createMutateAsync,
+      isPending: false,
       isError: false,
     });
 
-    renderWithRouter(<InspectionForm />);
+    const onCloseMock = jest.fn();
+    renderWithRouter(<InspectionForm onClose={onCloseMock} />);
 
     fireEvent.change(screen.getByLabelText('Date:'), { target: { value: '2023-05-01' } });
     fireEvent.change(screen.getByLabelText('Overall Health:'), { target: { value: 'Good' } });
     fireEvent.click(screen.getByLabelText('Queen Seen'));
     fireEvent.change(screen.getByLabelText('Notes:'), { target: { value: 'Test notes' } });
 
-    await act(async () => {
-      fireEvent.click(screen.getByText('Submit Inspection'));
-    });
+    fireEvent.click(screen.getByText('Submit Inspection'));
 
-    expect(createMutate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        hiveId: 1,
+    await waitFor(() => {
+      expect(createMutateAsync).toHaveBeenCalledWith({
+        hiveId: '1',
         inspectionData: expect.objectContaining({
           date: '2023-05-01',
           overallHealth: 'Good',
           queenSeen: true,
           notes: 'Test notes',
         }),
-      }),
-      expect.anything()
-    );
+      });
+      expect(onCloseMock).toHaveBeenCalled();
+    });
   });
 
   test('handles error when submitting new inspection form', async () => {
-    const createMutate = jest.fn().mockImplementation((_, options) => {
-      options.onError(new Error('Submission failed'));
-    });
+    const createMutateAsync = jest.fn().mockRejectedValue(new Error('Submission failed'));
     useInspections.useCreateInspection.mockReturnValue({
-      mutate: createMutate,
-      isLoading: false,
+      mutateAsync: createMutateAsync,
+      isPending: false,
       isError: false,
     });
 
@@ -118,18 +109,18 @@ describe('InspectionForm', () => {
     fireEvent.change(screen.getByLabelText('Date:'), { target: { value: '2023-05-01' } });
     fireEvent.change(screen.getByLabelText('Overall Health:'), { target: { value: 'Good' } });
 
-    await act(async () => {
-      fireEvent.click(screen.getByText('Submit Inspection'));
-    });
+    fireEvent.click(screen.getByText('Submit Inspection'));
 
-    expect(screen.getByText('Failed to create inspection: Submission failed')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Failed to submit inspection: Submission failed')).toBeInTheDocument();
+    });
   });
 
   test('updates existing inspection successfully', async () => {
-    const updateMutate = jest.fn();
+    const updateMutateAsync = jest.fn().mockResolvedValue({});
     useInspections.useUpdateInspection.mockReturnValue({
-      mutate: updateMutate,
-      isLoading: false,
+      mutateAsync: updateMutateAsync,
+      isPending: false,
       isError: false,
     });
 
@@ -141,17 +132,16 @@ describe('InspectionForm', () => {
       notes: 'Initial notes',
     };
 
-    renderWithRouter(<InspectionForm initialInspection={mockInspection} />);
+    const onCloseMock = jest.fn();
+    renderWithRouter(<InspectionForm initialInspection={mockInspection} onClose={onCloseMock} />);
 
     fireEvent.change(screen.getByLabelText('Notes:'), { target: { value: 'Updated notes' } });
 
-    await act(async () => {
-      fireEvent.click(screen.getByText('Update Inspection'));
-    });
+    fireEvent.click(screen.getByText('Update Inspection'));
 
-    expect(updateMutate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        hiveId: 1,
+    await waitFor(() => {
+      expect(updateMutateAsync).toHaveBeenCalledWith({
+        hiveId: '1',
         inspectionId: '123',
         inspectionData: expect.objectContaining({
           date: '2023-05-01',
@@ -159,18 +149,16 @@ describe('InspectionForm', () => {
           queenSeen: true,
           notes: 'Updated notes',
         }),
-      }),
-      expect.anything()
-    );
+      });
+      expect(onCloseMock).toHaveBeenCalled();
+    });
   });
 
   test('handles error when updating existing inspection', async () => {
-    const updateMutate = jest.fn().mockImplementation((_, options) => {
-      options.onError(new Error('Update failed'));
-    });
+    const updateMutateAsync = jest.fn().mockRejectedValue(new Error('Update failed'));
     useInspections.useUpdateInspection.mockReturnValue({
-      mutate: updateMutate,
-      isLoading: false,
+      mutateAsync: updateMutateAsync,
+      isPending: false,
       isError: false,
     });
 
@@ -186,82 +174,17 @@ describe('InspectionForm', () => {
 
     fireEvent.change(screen.getByLabelText('Notes:'), { target: { value: 'Updated notes' } });
 
-    await act(async () => {
-      fireEvent.click(screen.getByText('Update Inspection'));
+    fireEvent.click(screen.getByText('Update Inspection'));
+
+    await waitFor(() => {
+      expect(screen.getByText('Failed to submit inspection: Update failed')).toBeInTheDocument();
     });
-
-    expect(screen.getByText('Failed to update inspection: Update failed')).toBeInTheDocument();
-  });
-
-  test('deletes existing inspection successfully', async () => {
-    const deleteMutate = jest.fn();
-    useInspections.useDeleteInspection.mockReturnValue({
-      mutate: deleteMutate,
-      isLoading: false,
-      isError: false,
-    });
-
-    const mockInspection = {
-      _id: '123',
-      date: '2023-05-01',
-      overallHealth: 'Good',
-      queenSeen: true,
-      notes: 'Test notes',
-    };
-
-    window.confirm = jest.fn(() => true);
-
-    renderWithRouter(<InspectionForm initialInspection={mockInspection} />);
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('Delete Inspection'));
-    });
-
-    expect(window.confirm).toHaveBeenCalled();
-    expect(deleteMutate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        hiveId: 1,
-        inspectionId: '123',
-      }),
-      expect.anything()
-    );
-  });
-
-  test('handles error when deleting existing inspection', async () => {
-    const deleteMutate = jest.fn().mockImplementation((_, options) => {
-      options.onError(new Error('Delete failed'));
-    });
-    useInspections.useDeleteInspection.mockReturnValue({
-      mutate: deleteMutate,
-      isLoading: false,
-      isError: false,
-    });
-
-    const mockInspection = {
-      _id: '123',
-      date: '2023-05-01',
-      overallHealth: 'Good',
-      queenSeen: true,
-      notes: 'Test notes',
-    };
-
-    window.confirm = jest.fn(() => true);
-
-    renderWithRouter(<InspectionForm initialInspection={mockInspection} />);
-
-    await act(async () => {
-      fireEvent.click(screen.getByText('Delete Inspection'));
-    });
-
-    expect(window.confirm).toHaveBeenCalled();
-    expect(screen.getByText('Failed to delete inspection: Delete failed')).toBeInTheDocument();
   });
 
   test('disables submit button during submission', async () => {
-    const createMutate = jest.fn().mockImplementation(() => new Promise(resolve => setTimeout(resolve, 1000)));
     useInspections.useCreateInspection.mockReturnValue({
-      mutate: createMutate,
-      isLoading: true,
+      mutateAsync: jest.fn(),
+      isPending: true,
       isError: false,
     });
 
@@ -273,9 +196,5 @@ describe('InspectionForm', () => {
     const submitButton = screen.getByText('Submitting...');
 
     expect(submitButton).toBeDisabled();
-
-    await waitFor(() => {
-      expect(createMutate).toHaveBeenCalled();
-    });
   });
 });

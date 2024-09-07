@@ -7,6 +7,9 @@ const inspectionsStore = localForage.createInstance({
 });
 
 const fetchInspections = async ({ hiveId }) => {
+  if (!hiveId) {
+    throw new Error('Hive ID is required');
+  }
   try {
     const { data } = await axios.get(`/api/inspections/${hiveId}`);
     await inspectionsStore.setItem(`hive_${hiveId}`, data);
@@ -89,37 +92,20 @@ const deleteInspection = async ({ hiveId, inspectionId }) => {
   }
 };
 
-export const useInspections = (hiveId) => {
-  const queryClient = useQueryClient();
-
+export const useInspections = ({ hiveId }) => {
   return useQuery({
     queryKey: ['inspections', hiveId],
-    queryFn: () => fetchInspections(hiveId),
+    queryFn: () => fetchInspections({ hiveId }),
     enabled: !!hiveId,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    onError: (error) => {
-      console.error('Failed to fetch inspections:', error);
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(['inspections', hiveId], data);
-    },
   });
 };
 
 export const useInspection = (inspectionId) => {
-  const queryClient = useQueryClient();
-
   return useQuery({
-    queryKey: ['inspection' , inspectionId],
+    queryKey: ['inspection', inspectionId],
     queryFn: () => fetchInspection(inspectionId),
-    // enabled: !!hiveId && !!inspectionId,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    onError: (error) => {
-      console.error('Failed to fetch inspection:', error);
-    },
-    onSuccess: (data) => {
-      queryClient.setQueryData(['inspection', hiveId, inspectionId], data);
-    },
   });
 };
 
@@ -131,10 +117,18 @@ export const useCreateInspection = () => {
     onMutate: async ({ hiveId, inspectionData }) => {
       await queryClient.cancelQueries({ queryKey: ['inspections', hiveId] });
       const previousInspections = queryClient.getQueryData(['inspections', hiveId]);
-      queryClient.setQueryData(['inspections', hiveId], (old) => [
-        ...(old || []),
-        { ...inspectionData, _id: 'temp-id' },
+      
+      const optimisticInspection = { 
+        ...inspectionData, 
+        _id: 'temp-' + Date.now(),
+        createdAt: new Date().toISOString(),
+      };
+
+      queryClient.setQueryData(['inspections', hiveId], (old = []) => [
+        ...old,
+        optimisticInspection,
       ]);
+
       return { previousInspections };
     },
     onError: (err, { hiveId }, context) => {
@@ -155,11 +149,13 @@ export const useUpdateInspection = () => {
     onMutate: async ({ hiveId, inspectionId, inspectionData }) => {
       await queryClient.cancelQueries({ queryKey: ['inspections', hiveId] });
       const previousInspections = queryClient.getQueryData(['inspections', hiveId]);
-      queryClient.setQueryData(['inspections', hiveId], (old) =>
+      
+      queryClient.setQueryData(['inspections', hiveId], (old = []) =>
         old.map((inspection) =>
           inspection._id === inspectionId ? { ...inspection, ...inspectionData } : inspection
         )
       );
+
       return { previousInspections };
     },
     onError: (err, { hiveId }, context) => {
@@ -167,7 +163,7 @@ export const useUpdateInspection = () => {
     },
     onSettled: (data, error, { hiveId, inspectionId }) => {
       queryClient.invalidateQueries({ queryKey: ['inspections', hiveId] });
-      queryClient.invalidateQueries({ queryKey: ['inspection', hiveId, inspectionId] });
+      queryClient.invalidateQueries({ queryKey: ['inspection', inspectionId] });
       queryClient.invalidateQueries({ queryKey: ['hives', hiveId] });
     },
   });
@@ -181,9 +177,11 @@ export const useDeleteInspection = () => {
     onMutate: async ({ hiveId, inspectionId }) => {
       await queryClient.cancelQueries({ queryKey: ['inspections', hiveId] });
       const previousInspections = queryClient.getQueryData(['inspections', hiveId]);
-      queryClient.setQueryData(['inspections', hiveId], (old) =>
+      
+      queryClient.setQueryData(['inspections', hiveId], (old = []) =>
         old.filter((inspection) => inspection._id !== inspectionId)
       );
+
       return { previousInspections };
     },
     onError: (err, { hiveId }, context) => {

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import ErrorMessage from '../ErrorMessage';
+import { useCreateInspection, useUpdateInspection } from '../../hooks/useInspections';
 
-const InspectionForm = ({ initialInspection, onSubmit, onClose }) => {
+const InspectionForm = ({ initialInspection, onClose }) => {
   const { hiveId } = useParams();
   const [error, setError] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const createInspectionMutation = useCreateInspection();
+  const updateInspectionMutation = useUpdateInspection();
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split('T')[0],
@@ -38,37 +41,31 @@ const InspectionForm = ({ initialInspection, onSubmit, onClose }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setError(null);
 
     if (!hiveId) {
       setError('Invalid hive ID. Please check the URL and try again.');
-      setIsSubmitting(false);
       return;
     }
 
     try {
-      await onSubmit(formData);
+      if (initialInspection) {
+        await updateInspectionMutation.mutateAsync({ hiveId, inspectionId: initialInspection._id, inspectionData: formData });
+      } else {
+        await createInspectionMutation.mutateAsync({ hiveId, inspectionData: formData });
+      }
       onClose();
     } catch (error) {
       console.error('Failed to submit inspection:', error);
       setError(`Failed to submit inspection: ${error.message}`);
-      
-      // Handle offline submission
-      if (!navigator.onLine) {
-        const offlineInspection = { ...formData, isOffline: true, offlineAction: initialInspection ? 'update' : 'create' };
-        localStorage.setItem(`inspection_${hiveId}_${initialInspection ? initialInspection._id : 'new'}`, JSON.stringify(offlineInspection));
-        alert('Inspection saved offline. It will be synced when you are back online.');
-        onClose();
-      }
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   if (error) {
     return <ErrorMessage message={error} />;
   }
+
+  const isSubmitting = createInspectionMutation.isPending || updateInspectionMutation.isPending;
 
   return (
     <div className="max-w-2xl mx-auto p-4">
@@ -234,7 +231,7 @@ const InspectionForm = ({ initialInspection, onSubmit, onClose }) => {
         <div className="flex justify-between">
           <button
             type="submit"
-            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+            className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50"
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Submitting...' : `${initialInspection ? 'Update' : 'Submit'} Inspection`}
