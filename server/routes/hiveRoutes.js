@@ -335,10 +335,25 @@ router.post('/', auth, async (req, res) => {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/HiveUpdate'
+ *             type: object
+ *             required:
+ *               - type
+ *               - dose
+ *               - date
+ *               - weatherConditions
+ *             properties:
+ *               type:
+ *                 type: string
+ *               dose:
+ *                 type: string
+ *               date:
+ *                 type: string
+ *                 format: date
+ *               weatherConditions:
+ *                 type: string
  *     responses:
  *       200:
- *         description: Hive updated successfully
+ *         description: Treatment added successfully
  *         content:
  *           application/json:
  *             schema:
@@ -356,20 +371,27 @@ router.post('/', auth, async (req, res) => {
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put('/:id', auth, async (req, res) => {
+router.post('/:id/treatments', auth, async (req, res) => {
   try {
-    const hive = await Hive.findOneAndUpdate(
-      {
-        _id: req.params.id,
-        parent: { $in: await Apiary.find({ parent: req.user }).distinct('_id') },
-      },
-      req.body,
-      { new: true }
-    ).populate('parent', 'name location');
+    const { type, dose, date, weatherConditions } = req.body;
+
+    if (!type || !dose || !date || !weatherConditions) {
+      return res.status(400).json({ error: 'Bad Request', message: 'All treatment fields are required' });
+    }
+
+    const hive = await Hive.findOne({
+      _id: req.params.id,
+      parent: { $in: await Apiary.find({ parent: req.user }).distinct('_id') },
+    });
+
     if (!hive) {
       return res.status(404).json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
     }
-    res.json(hive);
+
+    hive.treatmentHistory.push({ type, dose, date, weatherConditions });
+    const updatedHive = await hive.save();
+
+    res.json(updatedHive);
   } catch (error) {
     res.status(400).json({ error: 'Bad Request', message: error.message });
   }

@@ -1,7 +1,10 @@
 // src/context/AuthContext.js
-import React, { createContext, useState, useEffect, useContext, useMemo } from 'react';
+import { createContext, useState, useEffect, useContext, useMemo } from 'react';
 import localForage from 'localforage';
 import axios from 'axios';
+
+// Set the base URL for all axios requests
+axios.defaults.baseURL = 'http://localhost:5050';
 
 const AuthContext = createContext();
 

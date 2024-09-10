@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import ApiaryMap from './ApiaryMap';
 import ApiaryList from './views/ApiaryList';
 import ApiaryForm from './views/ApiaryForm';
@@ -13,6 +14,7 @@ const Dashboard = () => {
   const { user, token } = useAuthContext();
   const [showApiaryForm, setShowApiaryForm] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: apiaries, isLoading, error, refetch } = useApiaries();
   const createApiaryMutation = useCreateApiary();
@@ -57,7 +59,15 @@ const Dashboard = () => {
               Welcome, {user?.name || 'Beekeeper'}!
             </h2>
           </div>
-          <VoiceCommander />
+          <div className="flex items-center">
+            <button
+              className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full mr-4 transition duration-300 ease-in-out transform hover:scale-105"
+              onClick={() => navigate('/settings')}
+            >
+              Settings
+            </button>
+            <VoiceCommander />
+          </div>
         </div>
       </header>
       <div className="flex flex-col md:flex-row flex-1 overflow-hidden px-4 pb-4">

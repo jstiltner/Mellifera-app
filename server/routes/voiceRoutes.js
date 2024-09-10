@@ -1,65 +1,66 @@
 const express = require('express');
 const router = express.Router();
-const natural = require('natural');
-const tokenizer = new natural.WordTokenizer();
+const axios = require('axios');
+require('dotenv').config();
 
-// Mock database for demonstration purposes
-const mockDatabase = {
-  hives: [],
-  apiaries: [],
-  inspections: []
-};
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// NLP function to process voice commands
-const processVoiceCommand = (command) => {
-  const tokens = tokenizer.tokenize(command.toLowerCase());
+// Function to process voice commands using OpenAI
+const processVoiceCommand = async (command, context) => {
+  if (!OPENAI_API_KEY) {
+    throw new Error('OpenAI API key is not set in the server environment');
+  }
 
-  if (tokens.includes('add') && tokens.includes('hive')) {
-    return { action: 'addHive' };
-  } else if (tokens.includes('show') && tokens.includes('apiaries')) {
-    return { action: 'showApiaries' };
-  } else if (tokens.includes('start') && tokens.includes('inspection')) {
-    return { action: 'startInspection' };
-  } else if ((tokens.includes('go') && tokens.includes('dashboard')) || (tokens.includes('show') && tokens.includes('dashboard'))) {
-    return { action: 'showDashboard' };
-  } else if (tokens.includes('create') && tokens.includes('apiary')) {
-    return { action: 'createApiary' };
-  } else {
-    return { action: 'unknown' };
+  try {
+    const response = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: 'You are a beekeeping assistant AI. Interpret the user\'s voice command and provide a structured response.' },
+          { role: 'user', content: `Command: ${command}\nContext: ${JSON.stringify(context)}` },
+        ],
+        temperature: 0.7,
+        max_tokens: 150,
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    const aiResponse = response.data.choices[0].message.content;
+    const parsedResponse = JSON.parse(aiResponse);
+
+    return {
+      action: parsedResponse.action,
+      message: parsedResponse.message,
+    };
+  } catch (error) {
+    console.error('Error processing voice command with OpenAI:', error);
+    if (error.response) {
+      console.error('OpenAI API error response:', error.response.data);
+    }
+    throw new Error('Failed to process voice command with OpenAI: ' + error.message);
   }
 };
 
 // Route to handle voice commands
-router.post('/command', (req, res) => {
-  const { command } = req.body;
+router.post('/voice-command', async (req, res) => {
+  const { command, context } = req.body;
 
   if (!command) {
     return res.status(400).json({ error: 'Voice command is required' });
   }
 
-  const result = processVoiceCommand(command);
-
-  switch (result.action) {
-    case 'addHive':
-      mockDatabase.hives.push({ id: Date.now(), name: 'New Hive' });
-      res.json({ message: 'New hive added successfully', action: result.action });
-      break;
-    case 'showApiaries':
-      res.json({ message: 'Showing apiaries', action: result.action, apiaries: mockDatabase.apiaries });
-      break;
-    case 'startInspection':
-      mockDatabase.inspections.push({ id: Date.now(), date: new Date() });
-      res.json({ message: 'New inspection started', action: result.action });
-      break;
-    case 'showDashboard':
-      res.json({ message: 'Navigating to dashboard', action: result.action });
-      break;
-    case 'createApiary':
-      mockDatabase.apiaries.push({ id: Date.now(), name: 'New Apiary' });
-      res.json({ message: 'New apiary created', action: result.action });
-      break;
-    default:
-      res.status(400).json({ error: 'Unknown command', action: result.action });
+  try {
+    const result = await processVoiceCommand(command, context);
+    res.json(result);
+  } catch (error) {
+    console.error('Error in voice command route:', error);
+    res.status(500).json({ error: 'Error processing voice command', details: error.message });
   }
 });
 

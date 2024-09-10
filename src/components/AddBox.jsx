@@ -1,4 +1,3 @@
-import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthContext } from '../context/AuthContext';
 import BoxCreationForm from './BoxCreationForm';

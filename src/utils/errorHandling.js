@@ -23,3 +23,7 @@ export const globalMutationErrorHandler = (error) => {
 export const errorToast = (message) => {
   toast.error(message);
 };
+
+export const successToast = (message) => {
+  toast.success(message);
+};

@@ -1,3 +1,5 @@
+import { speakText as pollySpeak } from './pollyService';
+
 const useAudioFeedback = () => {
   const playSound = (frequency, duration) => {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -30,10 +32,22 @@ const useAudioFeedback = () => {
     setTimeout(() => playSound(880, 0.1), 100); // Play A5 note for 100ms after 100ms delay
   };
 
+  const speakText = async (text) => {
+    try {
+      const audioUrl = await pollySpeak(text);
+      const audio = new Audio(audioUrl);
+      await audio.play();
+    } catch (error) {
+      console.error('Error in text-to-speech:', error);
+      playErrorSound();
+    }
+  };
+
   return {
     playSuccessSound,
     playErrorSound,
     playNotificationSound,
+    speakText,
   };
 };
 

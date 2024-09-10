@@ -1,4 +1,3 @@
-import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { useQueryClient } from '@tanstack/react-query';
 import { useUpdateHive } from '../hooks/useHives';

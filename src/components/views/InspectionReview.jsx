@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useInspection, useUpdateInspection, useDeleteInspection } from '../../hooks/useInspections';
 import Button from '../Button';
@@ -19,6 +19,8 @@ const InspectionReview = () => {
   if (isLoading) return <LoadingSpinner />;
   if (isError) return <ErrorMessage message={error.message || 'Error loading inspection'} />;
   if (!inspection) return <ErrorMessage message="No inspection found" />;
+
+  const { hive } = inspection;
 
   const handleUpdate = (updatedInspection) => {
     updateInspection.mutate(
@@ -50,7 +52,7 @@ const InspectionReview = () => {
         { inspectionId },
         {
           onSuccess: () => {
-            // navigate(`/hives/${hiveId}`);
+            navigate(`/hives/${hive}`);
           },
           onError: (error) => {
             console.error('Failed to delete inspection:', error);
@@ -58,7 +60,7 @@ const InspectionReview = () => {
             if (!navigator.onLine) {
               // Mark for deletion in local storage
               const offlineInspection = { ...inspection, isOffline: true, offlineAction: 'delete' };
-              localorage.setItem(`inspection_${inspectionId}`, JSON.stringify(offlineInspection));
+              localStorage.setItem(`inspection_${inspectionId}`, JSON.stringify(offlineInspection));
               setSuccessMessage('Inspection marked for deletion offline. It will be removed when you are back online.');
               setTimeout(() => setSuccessMessage(''), 3000);
             }
@@ -77,7 +79,7 @@ const InspectionReview = () => {
         </div>
       )}
       <div className="flex space-x-2 mb-4">
-        <Button onClick={() => navigate(`/hives/`)}>
+        <Button onClick={() => navigate(`/hives/${hive}`)}>
           Back to Hive Details
         </Button>
         <Button onClick={() => setIsEditModalOpen(true)}>

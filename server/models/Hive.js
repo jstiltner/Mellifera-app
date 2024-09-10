@@ -2,6 +2,13 @@ const SharedSchema = require('./SharedSchema');
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
+const TreatmentSchema = new Schema({
+  type: { type: String, required: true },
+  dose: { type: String, required: true },
+  date: { type: Date, required: true },
+  weatherConditions: { type: String, required: true },
+});
+
 const HiveSchema = new Schema({
   ...SharedSchema.tree,
   name: { type: String, required: false },
@@ -64,6 +71,7 @@ const HiveSchema = new Schema({
   treatmentRound: {
     type: Number,
   },
+  treatmentHistory: [TreatmentSchema], // New field for treatment history
 });
 
 HiveSchema.virtual('apiary', {

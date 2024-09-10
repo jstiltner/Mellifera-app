@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useCreateBox, useUpdateBox, useDeleteBox } from '../hooks/useBoxes';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';

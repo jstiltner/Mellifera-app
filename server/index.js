@@ -6,6 +6,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const routes = require('./routes/index');
+const voiceRoutes = require('./routes/voiceRoutes');
 const passport = require('passport');
 const session = require('express-session');
 require('./config/passport');
@@ -64,6 +65,7 @@ app.use(passport.session());
 
 // Routes
 app.use('/api', routes);
+app.use('/api', voiceRoutes);
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));

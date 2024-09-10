@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Button from '../Button';
 import Modal from '../Modal';
@@ -7,6 +7,7 @@ import ErrorMessage from '../ErrorMessage';
 import LoadingSpinner from '../LoadingSpinner';
 import { useApiary } from '../../hooks/useApiaries';
 import { useHives, useCreateHive } from '../../hooks/useHives';
+import VoiceCommander from '../VoiceCommander';
 
 const ApiaryDetails = () => {
   const { id: apiaryId } = useParams();
@@ -75,7 +76,10 @@ const ApiaryDetails = () => {
   return (
     <div className="bg-white shadow-lg rounded-lg p-6 m-4 max-w-4xl mx-auto flex flex-col h-[calc(100vh-2rem)]">
       <div className="flex-shrink-0">
-        <h2 className="text-3xl font-bold mb-6 text-indigo-700">{apiary.name || 'Unnamed Apiary'}</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-3xl font-bold text-indigo-700">{apiary.name || 'Unnamed Apiary'}</h2>
+          <VoiceCommander />
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div className="bg-gray-50 p-4 rounded-md shadow">
             <p className="mb-2">

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import 'regenerator-runtime/runtime';
+import { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Dashboard from './components/Dashboard';
@@ -12,6 +13,8 @@ import ApiaryDetails from './components/views/ApiaryDetails';
 import HiveDetails from './components/views/HiveDetails';
 import InspectionForm from './components/views/InspectionForm';
 import InspectionReview from './components/views/InspectionReview';
+import Settings from './components/views/Settings';
+import TreatmentForm from './components/views/TreatmentForm';
 import AuthenticatedQueryClientProvider from './hooks/AuthenticatedQueryClientProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 
@@ -115,6 +118,14 @@ const AppWithProviders = () => {
                   }
                 />
                 <Route
+                  path="/hives/:id/add-treatment"
+                  element={
+                    <ProtectedRoute>
+                      <TreatmentForm isOnline={isOnline}/>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/hives/:hiveId/add-inspection"
                   element={
                     <ProtectedRoute>
@@ -130,6 +141,14 @@ const AppWithProviders = () => {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <Settings isOnline={isOnline}/>
+                    </ProtectedRoute>
+                  }
+                />
               </Routes>
             </div>
           </Router>
@@ -139,8 +158,6 @@ const AppWithProviders = () => {
   );
 };
 
-export default ReactDOM.createRoot(document.getElementById('app')).render(
-  <React.StrictMode>
-    <AppWithProviders />
-  </React.StrictMode>
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <AppWithProviders />
 );
