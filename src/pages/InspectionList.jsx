@@ -1,6 +1,15 @@
 import React from 'react';
 
 const InspectionList = ({ inspections, onEdit, onDelete }) => {
+  if (!inspections || inspections.length === 0) {
+    return (
+      <div className="container mx-auto p-4">
+        <h2 className="text-2xl font-bold mb-4">Inspections</h2>
+        <p className="text-gray-600">No inspections found.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4">Inspections</h2>
@@ -30,10 +39,10 @@ const InspectionList = ({ inspections, onEdit, onDelete }) => {
               <strong>Temperament:</strong> {inspection.temperament}
             </p>
             <p>
-              <strong>Diseases:</strong> {inspection.diseases}
+              <strong>Diseases:</strong> {inspection.diseases || 'None'}
             </p>
             <p>
-              <strong>Notes:</strong> {inspection.notes}
+              <strong>Notes:</strong> {inspection.notes || 'No notes'}
             </p>
             <div className="mt-4 space-x-2">
               <button
@@ -43,7 +52,11 @@ const InspectionList = ({ inspections, onEdit, onDelete }) => {
                 Edit
               </button>
               <button
-                onClick={() => onDelete(inspection._id)}
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to delete this inspection?')) {
+                    onDelete(inspection._id);
+                  }
+                }}
                 className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
               >
                 Delete

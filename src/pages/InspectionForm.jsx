@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import ErrorMessage from '../ErrorMessage';
-import { useCreateInspection, useUpdateInspection } from '../../hooks/useInspections';
-import InspectionAIFlow from '../InspectionAIFlow';
-import Button from '../Button';
+import ErrorMessage from '../components/ErrorMessage';
+import { useCreateInspection, useUpdateInspection } from '../hooks/useInspections';
+import InspectionAIFlow from '../components/InspectionAIFlow';
+import Button from '../components/Button';
 
 const InspectionForm = ({ initialInspection }) => {
   const { hiveId } = useParams();

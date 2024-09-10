@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
-import { useHives, useCreateHive } from '../../hooks/useHives';
+import { useHives, useCreateHive } from '../hooks/useHives';
 import HiveForm from './HiveForm';
-import Modal from '../Modal';
+import Modal from '../components/Modal';
 
 const HiveList = () => {
   const { apiaryId } = useParams();

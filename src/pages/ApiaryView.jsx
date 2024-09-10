@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useMutation, useQueryClient } from 'react-query';
-import useQueryClientWithAuth from '../../hooks/useQueryClientWithAuth';
-import ApiaryMap from '../ApiaryMap';
+import useQueryClientWithAuth from '../hooks/useQueryClientWithAuth';
+import ApiaryMap from '../components/ApiaryMap';
 import ApiaryDetails from './ApiaryDetails';
 import HiveForm from './HiveForm';
-import Modal from '../Modal';
+import Modal from '../components/Modal';
 
 const ApiaryView = ({ apiaryId }) => {
   const [showHiveForm, setShowHiveForm] = useState(false);

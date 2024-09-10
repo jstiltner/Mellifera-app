@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useInspection, useUpdateInspection, useDeleteInspection } from '../../hooks/useInspections';
-import Button from '../Button';
+import { useInspection, useUpdateInspection, useDeleteInspection } from '../hooks/useInspections';
+import Button from '../components/Button';
 import InspectionForm from './InspectionForm';
-import Modal from '../Modal';
-import LoadingSpinner from '../LoadingSpinner';
-import ErrorMessage from '../ErrorMessage';
+import Modal from '../components/Modal';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
 
 const InspectionReview = () => {
   const { inspectionId } = useParams();

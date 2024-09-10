@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import Button from '../Button';
-import { useAuthContext } from '../../context/AuthContext';
-import { sanitizeInput } from '../../utils/validation.ts';
-import { useCreateHive, useUpdateHive } from '../../hooks/useHives';
-import { useCreateBox } from '../../hooks/useBoxes';
+import Button from '../components/Button';
+import { useAuthContext } from '../context/AuthContext';
+import { sanitizeInput } from '../utils/validation.ts';
+import { useCreateHive, useUpdateHive } from '../hooks/useHives';
+import { useCreateBox } from '../hooks/useBoxes';
 
 const HiveForm = ({ initialData, apiaryId, onClose }) => {
   const { token } = useAuthContext();

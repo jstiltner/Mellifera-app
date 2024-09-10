@@ -1,15 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Button from '../Button';
-import BoxForm from '../BoxForm';
-import Modal from '../Modal';
-import LoadingSpinner from '../LoadingSpinner';
-import { useInspections } from '../../hooks/useInspections';
-import { errorToast, successToast } from '../../utils/errorHandling';
-import { fetchHive, addBox, updateBox, deleteBox, updateHive } from '../../api/hiveApi';
-import ErrorBoundary from '../ErrorBoundary';
-import VoiceCommander from '../VoiceCommander';
+import Button from '../components/Button';
+import BoxForm from '../components/BoxForm';
+import Modal from '../components/Modal';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { useInspections } from '../hooks/useInspections';
+import { errorToast, successToast } from '../utils/errorHandling';
+import { fetchHive, addBox, updateBox, deleteBox, updateHive } from '../api/hiveApi';
+import ErrorBoundary from '../components/ErrorBoundary';
+import VoiceCommander from '../components/VoiceCommander';
 
 const HiveDetail = ({ label, value, isEditing, onChange }) => (
   <div className="mb-2">

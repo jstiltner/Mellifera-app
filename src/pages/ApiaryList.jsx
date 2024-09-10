@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import Button from '../Button';
-import Modal from '../Modal';
+import Button from '../components/Button';
+import Modal from '../components/Modal';
 import HiveForm from './HiveForm';
 import ApiaryForm from './ApiaryForm';
-import { useApiaries, useCreateApiary } from '../../hooks/useApiaries';
-import { useCreateHive } from '../../hooks/useHives';
+import { useApiaries, useCreateApiary } from '../hooks/useApiaries';
+import { useCreateHive } from '../hooks/useHives';
 
 const ApiaryList = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
