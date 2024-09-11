@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { addTreatment } from '../../api/hiveApi';
-import { errorToast, successToast } from '../../utils/errorHandling';
-import Button from '../Button';
-import ErrorBoundary from '../ErrorBoundary';
+import { addTreatment } from '../api/hiveApi';
+import { errorToast, successToast } from '../utils/errorHandling';
+import Button from '../components/Button';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const TreatmentForm = () => {
   const { id: hiveId } = useParams();

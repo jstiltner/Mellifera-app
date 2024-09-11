@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import localforage from 'localforage';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
 
 const Settings = () => {
   const queryClient = useQueryClient();
 
-  const { data: settings, isLoading, isError } = useQuery({
+  const { data: settings, isLoading, isError, error } = useQuery({
     queryKey: ['settings'],
     queryFn: async () => {
       const storedSettings = await localforage.getItem('settings');
@@ -28,8 +30,8 @@ const Settings = () => {
     }
   };
 
-  if (isLoading) return <div>Loading settings...</div>;
-  if (isError) return <div>Error loading settings</div>;
+  if (isLoading) return <LoadingSpinner />;
+  if (isError) return <ErrorMessage message={error?.message || 'Error loading settings'} />;
 
   return (
     <div className="p-4">
@@ -58,6 +60,12 @@ const Settings = () => {
           Enable Notifications
         </label>
       </div>
+      {updateSettingsMutation.isError && (
+        <ErrorMessage message={updateSettingsMutation.error?.message || 'Error updating settings'} />
+      )}
+      {updateSettingsMutation.isSuccess && (
+        <div className="mt-4 text-green-600">Settings updated successfully</div>
+      )}
     </div>
   );
 };

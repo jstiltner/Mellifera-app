@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import ApiaryMap from './ApiaryMap';
 import ApiaryList from './views/ApiaryList';
 import ApiaryForm from './views/ApiaryForm';
-import VoiceCommander from './VoiceCommander';
-import { useAuthContext } from '../context/AuthContext';
-import { useApiaries, useCreateApiary } from '../hooks/useApiaries';
-import ErrorMessage from './ErrorMessage';
-import LoadingSpinner from './LoadingSpinner';
+import VoiceCommander from '../VoiceCommander';
+import { useAuthContext } from '../../context/AuthContext';
+import { useApiaries, useCreateApiary } from '../../hooks/useApiaries';
+import ErrorMessage from '../common/ErrorMessage';
+import LoadingSpinner from '../common/LoadingSpinner';
 
 const Dashboard = () => {
   const { user, token } = useAuthContext();
