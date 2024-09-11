@@ -1,31 +1,21 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { addTreatment } from '../api/hiveApi';
+import { useTreatments } from '../hooks/useTreatments';
 import { errorToast, successToast } from '../utils/errorHandling';
-import Button from '../components/Button';
-import ErrorBoundary from '../components/ErrorBoundary';
+import Button from '../components/common/Button';
+import ErrorBoundary from '../components/common/ErrorBoundary';
 
 const TreatmentForm = () => {
   const { id: hiveId } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const { createTreatment } = useTreatments();
 
   const [treatmentData, setTreatmentData] = useState({
     type: '',
     dose: '',
     date: '',
     weatherConditions: '',
-  });
-
-  const addTreatmentMutation = useMutation({
-    mutationFn: (data) => addTreatment(hiveId, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['hive', hiveId]);
-      successToast('Treatment added successfully');
-      navigate(`/hives/${hiveId}`);
-    },
-    onError: (error) => errorToast(error, 'Error adding treatment'),
+    hiveId: hiveId,
   });
 
   const handleInputChange = (e) => {
@@ -33,16 +23,22 @@ const TreatmentForm = () => {
     setTreatmentData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (validateForm()) {
-      addTreatmentMutation.mutate(treatmentData);
+      try {
+        await createTreatment.mutateAsync(treatmentData);
+        successToast('Treatment added successfully');
+        navigate(`/hives/${hiveId}`);
+      } catch (error) {
+        errorToast(error, 'Error adding treatment');
+      }
     }
   };
 
   const validateForm = () => {
     for (const key in treatmentData) {
-      if (!treatmentData[key]) {
+      if (!treatmentData[key] && key !== 'hiveId') {
         errorToast(new Error(`${key} is required`));
         return false;
       }
@@ -111,9 +107,9 @@ const TreatmentForm = () => {
             <Button
               type="submit"
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              disabled={addTreatmentMutation.isLoading}
+              disabled={createTreatment.isLoading}
             >
-              {addTreatmentMutation.isLoading ? 'Adding...' : 'Add Treatment'}
+              {createTreatment.isLoading ? 'Adding...' : 'Add Treatment'}
             </Button>
             <Button
               type="button"

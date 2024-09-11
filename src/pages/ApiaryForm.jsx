@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import Button from '../components/Button';
+import Button from '../components/common/Button';
 
 const createApiary = async (newApiaryData) => {
   console.log('Creating apiary with data:', newApiaryData);

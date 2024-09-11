@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useCreateBox, useUpdateBox, useDeleteBox } from '../hooks/useBoxes';
-import LoadingSpinner from './LoadingSpinner';
-import ErrorMessage from './ErrorMessage';
+import { useCreateBox, useUpdateBox, useDeleteBox } from '../../hooks/useBoxes';
+import LoadingSpinner from '../common/LoadingSpinner';
+import ErrorMessage from '../common/ErrorMessage';
 
 const BoxForm = ({ initialBox, onSuccess, closeModal }) => {
   const [box, setBox] = useState(initialBox || { boxNumber: '', type: '', frames: 10 });

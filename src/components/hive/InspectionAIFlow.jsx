@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Button from './Button';
-import { useVoiceCommand } from '../hooks/useVoiceCommand';
-import { speakText } from '../utils/pollyService';
-import { useNLU } from '../hooks/useNLU';
+import { useState, useEffect, useRef } from 'react';
+import Button from '../common/Button';
+import { useVoiceCommand } from '../../hooks/useVoiceCommand';
+import { speakText } from '../../utils/pollyService';
+import useNLU from '../../hooks/useNLU';
 
 const inspectionSteps = [
   { id: 'hiveCondition', question: "How would you describe the overall condition of the hive?", options: ["Strong", "Average", "Weak"] },

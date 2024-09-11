@@ -4,7 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { OPENAI_CONFIG } from './nluConfig';
 
 // MongoDB connection (ensure this is set up in your main server file)
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+// mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 // Define a schema for storing NLU results
 const NluResultSchema = new mongoose.Schema({
@@ -18,7 +18,7 @@ const NluResult = mongoose.model('NluResult', NluResultSchema);
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 
-const processCommand = async (command) => {
+export const processCommand = async (command) => {
   try {
     const response = await axios.post(
       OPENAI_API_URL,

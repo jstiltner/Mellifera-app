@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import Button from '../components/Button';
-import Modal from '../components/Modal';
+import Button from '../components/common/Button';
+import Modal from '../components/common/Modal';
 import HiveForm from './HiveForm';
-import ErrorMessage from '../components/ErrorMessage';
-import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/common/ErrorMessage';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useApiary } from '../hooks/useApiaries';
 import { useHives, useCreateHive } from '../hooks/useHives';
-import VoiceCommander from '../components/VoiceCommander';
+import VoiceCommander from '../components/voice/VoiceCommander';
 
 const ApiaryDetails = () => {
   const { id: apiaryId } = useParams();

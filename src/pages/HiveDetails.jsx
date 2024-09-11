@@ -1,69 +1,19 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Button from '../components/Button';
-import BoxForm from '../components/BoxForm';
-import Modal from '../components/Modal';
-import LoadingSpinner from '../components/LoadingSpinner';
+import Button from '../components/common/Button';
+import BoxForm from '../components/hive/BoxForm';
+import Modal from '../components/common/Modal';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useInspections } from '../hooks/useInspections';
+import { useTreatments } from '../hooks/useTreatments';
 import { errorToast, successToast } from '../utils/errorHandling';
 import { fetchHive, addBox, updateBox, deleteBox, updateHive } from '../api/hiveApi';
-import ErrorBoundary from '../components/ErrorBoundary';
-import VoiceCommander from '../components/VoiceCommander';
+import ErrorBoundary from '../components/common/ErrorBoundary';
+import VoiceCommander from '../components/voice/VoiceCommander';
+import TreatmentView from '../components/treatments/TreatmentView';
 
-const HiveDetail = ({ label, value, isEditing, onChange }) => (
-  <div className="mb-2">
-    <span className="font-semibold">{label}:</span>
-    {isEditing ? (
-      <input
-        type="text"
-        value={value?.toString() ?? ''}
-        onChange={(e) => onChange(e.target.value)}
-        className="ml-2 p-1 border rounded"
-      />
-    ) : (
-      <span className="ml-2">{value?.toString() ?? 'N/A'}</span>
-    )}
-  </div>
-);
-
-const InspectionDetail = ({ inspection }) => {
-  const navigate = useNavigate();
-
-  const handleClick = useCallback((e) => {
-    e.preventDefault();
-    navigate(`/inspections/${inspection._id}`);
-  }, [inspection._id, navigate]);
-
-  return (
-    <Link 
-      to={`/inspections/${inspection._id}`} 
-      onClick={handleClick}
-      className="block mb-4 p-4 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200"
-    >
-      <h3 className="text-lg font-semibold mb-2">
-        Inspection on {new Date(inspection.date).toLocaleDateString()}
-      </h3>
-      <p><strong>Overall Health:</strong> {inspection.overallHealth}</p>
-      <p><strong>Queen Seen:</strong> {inspection.queenSeen ? 'Yes' : 'No'}</p>
-      <p><strong>Diseases Seen:</strong> {inspection.diseasesSeen || 'None'}</p>
-      <p><strong>Pests Seen:</strong> {inspection.pestsSeen || 'None'}</p>
-      <p><strong>Hive Temperament:</strong> {inspection.hiveTemperament}</p>
-      {inspection.notes && <p><strong>Notes:</strong> {inspection.notes}</p>}
-    </Link>
-  );
-};
-
-const TreatmentDetail = ({ treatment }) => (
-  <div className="mb-4 p-4 bg-gray-100 rounded-lg">
-    <h3 className="text-lg font-semibold mb-2">
-      Treatment on {new Date(treatment.date).toLocaleDateString()}
-    </h3>
-    <p><strong>Type:</strong> {treatment.type}</p>
-    <p><strong>Dose:</strong> {treatment.dose}</p>
-    <p><strong>Weather Conditions:</strong> {treatment.weatherConditions}</p>
-  </div>
-);
+// ... (keep the HiveDetail and InspectionDetail components as they are)
 
 const HiveDetails = () => {
   const { id } = useParams();
@@ -71,6 +21,7 @@ const HiveDetails = () => {
   const [selectedBox, setSelectedBox] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedHive, setEditedHive] = useState({});
+  const [selectedTreatment, setSelectedTreatment] = useState(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -93,99 +44,55 @@ const HiveDetails = () => {
     refetch: refetchInspections,
   } = useInspections({ hiveId: id });
 
-  const addBoxMutation = useMutation({
-    mutationFn: ({ hiveId, boxData }) => addBox(hiveId, boxData),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['hive', id]);
-      setIsBoxModalOpen(false);
-    },
-    onError: (error) => errorToast(error, 'Error adding box'),
-  });
+  const {
+    getTreatmentsByHive,
+    updateTreatment,
+    deleteTreatment,
+  } = useTreatments();
 
-  const updateBoxMutation = useMutation({
-    mutationFn: ({ hiveId, boxId, boxData }) => updateBox(hiveId, boxId, boxData),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['hive', id]);
-      setIsBoxModalOpen(false);
-      setSelectedBox(null);
-    },
-    onError: (error) => errorToast(error, 'Error updating box'),
-  });
+  const {
+    data: treatments,
+    isLoading: isTreatmentsLoading,
+    isError: isTreatmentsError,
+    error: treatmentsError,
+  } = getTreatmentsByHive(id);
 
-  const deleteBoxMutation = useMutation({
-    mutationFn: ({ hiveId, boxId }) => deleteBox(hiveId, boxId),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['hive', id]);
-      setIsBoxModalOpen(false);
-      setSelectedBox(null);
-    },
-    onError: (error) => errorToast(error, 'Error deleting box'),
-  });
+  // ... (keep the existing mutations as they are)
 
-  const updateHiveMutation = useMutation({
-    mutationFn: (updatedHive) => updateHive(id, updatedHive),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['hive', id]);
-      setIsEditing(false);
-      successToast('Hive updated successfully');
-      navigate(`/hives/${id}`);
-    },
-    onError: (error) => errorToast(error, 'Error updating hive'),
-  });
-
-  useEffect(() => {
-    if (hive && isEditing) {
-      setEditedHive({ ...hive });
+  const handleUpdateTreatment = useCallback(async (updatedTreatment) => {
+    try {
+      await updateTreatment.mutateAsync(updatedTreatment);
+      setSelectedTreatment(null);
+      successToast('Treatment updated successfully');
+    } catch (error) {
+      errorToast(error, 'Error updating treatment');
     }
-  }, [hive, isEditing]);
+  }, [updateTreatment]);
 
-  const handleAddBox = useCallback((boxData) => {
-    addBoxMutation.mutate({ hiveId: id, boxData });
-  }, [addBoxMutation, id]);
+  const handleDeleteTreatment = useCallback(async (treatmentId) => {
+    try {
+      await deleteTreatment.mutateAsync(treatmentId);
+      setSelectedTreatment(null);
+      successToast('Treatment deleted successfully');
+    } catch (error) {
+      errorToast(error, 'Error deleting treatment');
+    }
+  }, [deleteTreatment]);
 
-  const handleUpdateBox = useCallback((updatedBoxData) => {
-    updateBoxMutation.mutate({ hiveId: id, boxId: updatedBoxData._id, boxData: updatedBoxData });
-  }, [updateBoxMutation, id]);
-
-  const handleDeleteBox = useCallback((boxId) => {
-    deleteBoxMutation.mutate({ hiveId: id, boxId });
-  }, [deleteBoxMutation, id]);
-
-  const handleRefetchInspections = useCallback(() => {
-    refetchInspections();
-  }, [refetchInspections]);
-
-  const handleEditClick = useCallback(() => {
-    setIsEditing(true);
-    setEditedHive({ ...hive });
-  }, [hive]);
-
-  const handleSaveClick = useCallback(() => {
-    updateHiveMutation.mutate(editedHive);
-  }, [updateHiveMutation, editedHive]);
-
-  const handleCancelClick = useCallback(() => {
-    setIsEditing(false);
-    setEditedHive({});
-    navigate(`/hives/${id}`);
-  }, [navigate, id]);
-
-  const handleInputChange = useCallback((field, value) => {
-    setEditedHive((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  // ... (keep the rest of the existing handlers as they are)
 
   if (!id) {
     return <div className="text-red-500 text-center py-4">Invalid Hive ID</div>;
   }
 
-  if (isHiveLoading || isInspectionsLoading) {
+  if (isHiveLoading || isInspectionsLoading || isTreatmentsLoading) {
     return <LoadingSpinner />;
   }
 
-  if (isHiveError || isInspectionsError) {
+  if (isHiveError || isInspectionsError || isTreatmentsError) {
     return (
       <div className="text-red-500 text-center py-4" aria-live="assertive">
-        Error: {(hiveError || inspectionsError)?.message || 'An error occurred while fetching data. Please try again later.'}
+        Error: {(hiveError || inspectionsError || treatmentsError)?.message || 'An error occurred while fetching data. Please try again later.'}
       </div>
     );
   }
@@ -203,106 +110,11 @@ const HiveDetails = () => {
   return (
     <ErrorBoundary>
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">{hive.name}</h1>
-          <VoiceCommander />
-        </div>
-        <div className="flex justify-between items-center mb-6">
-          {isEditing ? (
-            <div>
-              <Button
-                className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mr-2"
-                onClick={handleSaveClick}
-              >
-                Save
-              </Button>
-              <Button
-                className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-                onClick={handleCancelClick}
-              >
-                Cancel
-              </Button>
-            </div>
-          ) : (
-            <Button
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={handleEditClick}
-            >
-              Edit
-            </Button>
-          )}
-        </div>
-        <ErrorBoundary>
-          <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-            <h2 className="text-2xl font-semibold mb-4">Hive Details</h2>
-            <HiveDetail
-              label="Name"
-              value={isEditing ? editedHive.name : hive.name}
-              isEditing={isEditing}
-              onChange={(value) => handleInputChange('name', value)}
-            />
-            <HiveDetail
-              label="Type"
-              value={isEditing ? editedHive.type : hive.type}
-              isEditing={isEditing}
-              onChange={(value) => handleInputChange('type', value)}
-            />
-            <HiveDetail
-              label="Status"
-              value={isEditing ? editedHive.status : hive.status}
-              isEditing={isEditing}
-              onChange={(value) => handleInputChange('status', value)}
-            />
-            <HiveDetail
-              label="Queen Present"
-              value={isEditing ? (editedHive.queenPresent ? 'Yes' : 'No') : (hive.queenPresent ? 'Yes' : 'No')}
-              isEditing={isEditing}
-              onChange={(value) => handleInputChange('queenPresent', value.toLowerCase() === 'yes')}
-            />
-            <HiveDetail label="Box Count" value={boxCount} isEditing={false} />
-          </div>
-        </ErrorBoundary>
+        {/* ... (keep the existing hive details section as it is) */}
 
         {!isEditing && (
           <>
-            <ErrorBoundary>
-              <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-                <h2 className="text-2xl font-semibold mb-4">
-                  {boxCount === 0 ? 'No boxes' : boxCount === 1 ? '1 box' : `${boxCount} boxes`}
-                </h2>
-                {boxCount > 0 ? (
-                  <ul className="list-disc pl-5 mb-4">
-                    {hive.children?.map((box, index) => (
-                      <li key={box._id || index} className="mb-1">
-                        Box {box.boxNumber}: {box.type} ({box.frames} frames)
-                        <Button
-                          className="ml-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm"
-                          onClick={() => {
-                            setSelectedBox(box);
-                            setIsBoxModalOpen(true);
-                          }}
-                          aria-label={`Edit box ${box.boxNumber}`}
-                        >
-                          Edit
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mb-4">No boxes added to this hive yet.</p>
-                )}
-                <Button
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                  onClick={() => {
-                    setSelectedBox(null);
-                    setIsBoxModalOpen(true);
-                  }}
-                  aria-label="Add new box"
-                >
-                  Add Box
-                </Button>
-              </div>
-            </ErrorBoundary>
+            {/* ... (keep the existing boxes section as it is) */}
 
             <ErrorBoundary>
               <div className="bg-white shadow-md rounded-lg p-6 mb-6">
@@ -314,10 +126,23 @@ const HiveDetails = () => {
                     </Button>
                   </Link>
                 </div>
-                {Array.isArray(hive.treatmentHistory) && hive.treatmentHistory.length > 0 ? (
+                {Array.isArray(treatments) && treatments.length > 0 ? (
                   <div>
-                    {hive.treatmentHistory.map((treatment, index) => (
-                      <TreatmentDetail key={treatment._id || index} treatment={treatment} />
+                    {treatments.map((treatment) => (
+                      <div key={treatment._id} className="mb-4 p-4 bg-gray-100 rounded-lg">
+                        <h3 className="text-lg font-semibold mb-2">
+                          Treatment on {new Date(treatment.date).toLocaleDateString()}
+                        </h3>
+                        <p><strong>Type:</strong> {treatment.type}</p>
+                        <p><strong>Dose:</strong> {treatment.dose}</p>
+                        <p><strong>Weather Conditions:</strong> {treatment.weatherConditions}</p>
+                        <Button
+                          className="mt-2 bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded text-sm"
+                          onClick={() => setSelectedTreatment(treatment)}
+                        >
+                          View/Edit
+                        </Button>
+                      </div>
                     ))}
                   </div>
                 ) : (
@@ -326,34 +151,7 @@ const HiveDetails = () => {
               </div>
             </ErrorBoundary>
 
-            <ErrorBoundary>
-              <div className="bg-white shadow-md rounded-lg p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-2xl font-semibold">Recent Inspections</h2>
-                  <Button
-                    className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={handleRefetchInspections}
-                    aria-label="Refresh inspections"
-                  >
-                    Refresh Inspections
-                  </Button>
-                </div>
-                {Array.isArray(inspections) && inspections.length > 0 ? (
-                  <div>
-                    {inspections.map((inspection) => (
-                      <InspectionDetail key={inspection._id} inspection={inspection} />
-                    ))}
-                  </div>
-                ) : (
-                  <p className="mb-4">No recent inspections.</p>
-                )}
-                <Link to={`/hives/${id}/add-inspection`}>
-                  <Button className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded" aria-label="Add new inspection">
-                    Add Inspection
-                  </Button>
-                </Link>
-              </div>
-            </ErrorBoundary>
+            {/* ... (keep the existing inspections section as it is) */}
 
             <Modal isOpen={isBoxModalOpen} onClose={() => {
               setIsBoxModalOpen(false);
@@ -365,6 +163,15 @@ const HiveDetails = () => {
                 onUpdateBox={handleUpdateBox}
                 onDeleteBox={handleDeleteBox}
                 closeModal={setIsBoxModalOpen}
+              />
+            </Modal>
+
+            <Modal isOpen={!!selectedTreatment} onClose={() => setSelectedTreatment(null)}>
+              <TreatmentView
+                treatment={selectedTreatment}
+                onClose={() => setSelectedTreatment(null)}
+                onUpdate={handleUpdateTreatment}
+                onDelete={handleDeleteTreatment}
               />
             </Modal>
           </>

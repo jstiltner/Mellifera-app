@@ -45,3 +45,12 @@ export const deleteBox = async (hiveId, boxId) => {
     throw new Error('Failed to delete box');
   }
 };
+
+export const addTreatment = async (hiveId, treatmentData) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/hives/${hiveId}/treatments`, treatmentData);
+    return response.data;
+  } catch (error) {
+    throw new Error('Failed to add treatment');
+  }
+};
