@@ -1,9 +1,9 @@
 import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../context/AuthContext';
-import Button from './Button';
-import useAudioFeedback from '../utils/audioFeedback';
-import { speakText } from '../utils/pollyService';
+import { AuthContext } from '../../context/AuthContext';
+import Button from '../common/Button';
+import useAudioFeedback from '../../utils/audioFeedback';
+import { speakText } from '../../utils/pollyService';
 
 const Login = () => {
   const [isRegistering, setIsRegistering] = useState(false);

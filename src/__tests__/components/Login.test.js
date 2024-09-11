@@ -1,15 +1,18 @@
+"use client";
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import userEvent from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import Login from '../components/Login';
-import { AuthContext } from '../context/AuthContext';
-import { speakText } from '../utils/pollyService';
+import Login from '../../components/forms/Login';
+import { AuthContext } from '../../context/AuthContext';
+import { speakText } from '../../utils/pollyService';
 
 // Mock the AuthContext and Polly service
-jest.mock('../context/AuthContext', () => ({
-  AuthContext: React.createContext(null),
-}));
-jest.mock('../utils/pollyService', () => ({
+jest.mock('../../context/AuthContext', () => {
+  const React = require('react');
+  AuthContext: React.createContext(null)
+});
+jest.mock('../../utils/pollyService', () => ({
   speakText: jest.fn(),
 }));
 
@@ -25,7 +28,7 @@ describe('Login Component', () => {
     jest.spyOn(require('react-router-dom'), 'useNavigate').mockReturnValue(mockNavigate);
   });
 
-  const renderLogin = (loginValue = mockLogin) => {
+  const renderLogin = (loginValue = mockLogin, AuthContext) => {
     return render(
       <BrowserRouter>
         <AuthContext.Provider value={{ login: loginValue }}>

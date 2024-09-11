@@ -1,11 +1,18 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import axios from 'axios';
 import localForage from 'localforage';
-import { useInspections, useCreateInspection } from '../hooks/useInspections';
+import { useInspections, useCreateInspection } from '../../hooks/useInspections';
 
+jest.mock('localforage', () => ({
+  localforage: {
+    createInstance: jest.fn(),
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    config: jest.fn()
+  }
+}));
 jest.mock('axios');
-jest.mock('localforage');
 
 const mockInspections = [
   { id: '1', date: '2023-05-01', notes: 'Healthy hive' },

@@ -1,12 +1,12 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import userEvent from '@testing-library/react';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import HiveList from '../components/views/HiveList';
-import { useHives, useCreateHive, useUpdateHive, useDeleteHive } from '../hooks/useHives';
+import HiveList from '../../pages/HiveList';
+import { useHives, useCreateHive, useUpdateHive, useDeleteHive } from '../../hooks/useHives';
 
-jest.mock('../hooks/useHives');
+jest.mock('../../hooks/useHives');
 
 const mockHives = [
   { _id: '1', name: 'Hive 1', queenId: 'Q1', status: 'Active', notes: 'Test hive 1', children: [] },

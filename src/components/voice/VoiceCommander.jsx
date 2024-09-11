@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import useAudioFeedback from '../utils/audioFeedback';
-import { useApiaries } from '../hooks/useApiaries';
-import useNLU from '../hooks/useNLU';
+import useAudioFeedback from '../../utils/audioFeedback';
+import { useApiaries } from '../../hooks/useApiaries';
+import useNLU from '../../hooks/useNLU';
 import { debounce } from 'lodash';
 import localForage from 'localforage';
 

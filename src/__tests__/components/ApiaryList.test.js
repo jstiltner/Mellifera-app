@@ -1,12 +1,12 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import userEvent from '@testing-library/react';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import ApiaryList from '../components/views/ApiaryList';
-import { useApiaries, useCreateApiary, useUpdateApiary, useDeleteApiary } from '../hooks/useApiaries';
+import ApiaryList from '../../pages/ApiaryList';
+import { useApiaries, useCreateApiary, useUpdateApiary, useDeleteApiary } from '../../hooks/useApiaries';
 
-jest.mock('../hooks/useApiaries');
+jest.mock('../../hooks/useApiaries');
 
 const mockApiaries = [
   { _id: '1', name: 'Apiary 1', location: 'Location 1', hives: [] },

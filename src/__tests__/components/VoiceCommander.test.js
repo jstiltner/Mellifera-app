@@ -1,15 +1,15 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
-import VoiceCommander from '../components/VoiceCommander';
-import useNLU from '../hooks/useNLU';
-import useAudioFeedback from '../utils/audioFeedback';
-import { useApiaries } from '../hooks/useApiaries';
+import VoiceCommander from '../../components/voice/VoiceCommander';
+import useNLU from '../../hooks/useNLU';
+import useAudioFeedback from '../../hooks/useNLU';
+import { useApiaries } from '../../hooks/useApiaries';
 
 // Mock the hooks
-jest.mock('../hooks/useNLU');
-jest.mock('../utils/audioFeedback');
-jest.mock('../hooks/useApiaries');
+jest.mock('../../hooks/useNLU');
+jest.mock('../../utils/audioFeedback');
+jest.mock('../../hooks/useApiaries');
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import Button from '../components/Button';
+import Button from '../components/common/Button';
 import { useAuthContext } from '../context/AuthContext';
 import { sanitizeInput } from '../utils/validation.ts';
 import { useCreateHive, useUpdateHive } from '../hooks/useHives';

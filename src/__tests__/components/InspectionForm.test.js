@@ -3,11 +3,20 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
-import InspectionForm from '../components/views/InspectionForm';
-import * as useInspections from '../hooks/useInspections';
+import InspectionForm from '../../pages/InspectionForm';
+import * as useInspections from '../../hooks/useInspections';
+
+jest.mock('localforage', () => ({
+  localforage: {
+    createInstance: jest.fn(),
+    getItem: jest.fn(),
+    setItem: jest.fn(),
+    config: jest.fn()
+  }
+}));
 
 // Mock the hooks
-jest.mock('../hooks/useInspections');
+jest.mock('../../hooks/useInspections');
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: jest.fn(),

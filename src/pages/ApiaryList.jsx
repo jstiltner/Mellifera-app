@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
-import Button from '../components/Button';
-import Modal from '../components/Modal';
+import Button from '../components/common/Button';
+import Modal from '../components/common/Modal';
 import HiveForm from './HiveForm';
 import ApiaryForm from './ApiaryForm';
 import { useApiaries, useCreateApiary } from '../hooks/useApiaries';
