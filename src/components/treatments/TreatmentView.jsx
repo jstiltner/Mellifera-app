@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTreatments } from '../../hooks/useTreatments';
 import { Button, ErrorMessage, LoadingSpinner } from '../common';
 

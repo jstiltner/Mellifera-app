@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTreatments } from '../hooks/useTreatments';
 import { errorToast, successToast } from '../utils/errorHandling';
