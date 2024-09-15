@@ -9,8 +9,8 @@ jest.mock('localforage', () => ({
     createInstance: jest.fn(),
     getItem: jest.fn(),
     setItem: jest.fn(),
-    config: jest.fn()
-  }
+    config: jest.fn(),
+  },
 }));
 jest.mock('axios');
 
@@ -139,7 +139,12 @@ describe('useCreateInspection', () => {
 
 describe('Offline data syncing', () => {
   it('syncs offline data when coming back online', async () => {
-    const offlineInspection = { id: 'offline1', date: '2023-06-01', notes: 'Offline inspection', isOffline: true };
+    const offlineInspection = {
+      id: 'offline1',
+      date: '2023-06-01',
+      notes: 'Offline inspection',
+      isOffline: true,
+    };
     const syncedInspection = { ...offlineInspection, id: 'synced1', isOffline: false };
 
     const mockStore = {
@@ -154,7 +159,7 @@ describe('Offline data syncing', () => {
     const onlineEvent = new Event('online');
     window.dispatchEvent(onlineEvent);
 
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
     expect(axios.post).toHaveBeenCalledWith('/api/hives/hive1/inspections', offlineInspection);
     expect(mockStore.setItem).toHaveBeenCalledWith('hive_hive1', [syncedInspection]);

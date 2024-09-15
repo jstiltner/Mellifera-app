@@ -91,7 +91,10 @@ const TreatmentForm = () => {
             />
           </div>
           <div className="mb-6">
-            <label htmlFor="weatherConditions" className="block text-gray-700 text-sm font-bold mb-2">
+            <label
+              htmlFor="weatherConditions"
+              className="block text-gray-700 text-sm font-bold mb-2"
+            >
               Weather Conditions
             </label>
             <input

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 
@@ -49,32 +49,34 @@ const HiveMap = () => {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {Array.isArray(apiaries) && apiaries.map((apiary) => (
-        <Marker key={apiary._id} position={[apiary.latitude, apiary.longitude]}>
-          <Popup>
-            <h3>{apiary.name}</h3>
-            <p>
-              Latitude: {apiary.latitude}, Longitude: {apiary.longitude}
-            </p>
-          </Popup>
-        </Marker>
-      ))}
-      {Array.isArray(hives) && hives.map((hive) => (
-        <Marker
-          key={hive._id}
-          position={[hive.lat, hive.lng]}
-          draggable
-          onDragStart={() => handleDragStart(hive)}
-          onDragEnd={handleDragEnd}
-        >
-          <Popup>
-            <h3>{hive.name}</h3>
-            <p>
-              Latitude: {hive.lat}, Longitude: {hive.lng}
-            </p>
-          </Popup>
-        </Marker>
-      ))}
+      {Array.isArray(apiaries) &&
+        apiaries.map((apiary) => (
+          <Marker key={apiary._id} position={[apiary.latitude, apiary.longitude]}>
+            <Popup>
+              <h3>{apiary.name}</h3>
+              <p>
+                Latitude: {apiary.latitude}, Longitude: {apiary.longitude}
+              </p>
+            </Popup>
+          </Marker>
+        ))}
+      {Array.isArray(hives) &&
+        hives.map((hive) => (
+          <Marker
+            key={hive._id}
+            position={[hive.lat, hive.lng]}
+            draggable
+            onDragStart={() => handleDragStart(hive)}
+            onDragEnd={handleDragEnd}
+          >
+            <Popup>
+              <h3>{hive.name}</h3>
+              <p>
+                Latitude: {hive.lat}, Longitude: {hive.lng}
+              </p>
+            </Popup>
+          </Marker>
+        ))}
     </MapContainer>
   );
 };

@@ -1,18 +1,20 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes, useNavigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { fireEvent, waitFor, screen } from '@testing-library/react';
+import { Route, Routes, useNavigate } from 'react-router-dom';
 import '@testing-library/jest-dom';
 import InspectionForm from '../../pages/InspectionForm';
 import * as useInspections from '../../hooks/useInspections';
+import { render } from '../testUtils';
 
 jest.mock('localforage', () => ({
-  localforage: {
-    createInstance: jest.fn(),
+  createInstance: jest.fn(() => ({
     getItem: jest.fn(),
     setItem: jest.fn(),
-    config: jest.fn()
-  }
+    config: jest.fn(),
+  })),
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  config: jest.fn(),
 }));
 
 // Mock the hooks
@@ -22,17 +24,12 @@ jest.mock('react-router-dom', () => ({
   useNavigate: jest.fn(),
 }));
 
-const queryClient = new QueryClient();
-
 const renderWithRouter = (ui, { route = '/hives/1/inspections' } = {}) => {
   return render(
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[route]}>
-        <Routes>
-          <Route path="/hives/:hiveId/inspections" element={ui} />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>
+    <Routes>
+      <Route path="/hives/:hiveId/inspections" element={ui} />
+    </Routes>,
+    { initialEntries: [route] }
   );
 };
 
@@ -80,7 +77,7 @@ describe('InspectionForm', () => {
     expect(screen.getByLabelText('Date:')).toHaveValue('2023-05-01');
     expect(screen.getByLabelText('Overall Health:')).toHaveValue('Good');
     expect(screen.getByLabelText('Queen Seen')).toBeChecked();
-    expect(screen.getByLabelText('Notes:')).toHaveValue('Test notes');
+    expect(screen.getByRole('textbox', { name: /notes/i })).toHaveValue('Test notes');
     expect(screen.getByText('Update Inspection')).toBeInTheDocument();
   });
 
@@ -97,7 +94,9 @@ describe('InspectionForm', () => {
     fireEvent.change(screen.getByLabelText('Date:'), { target: { value: '2023-05-01' } });
     fireEvent.change(screen.getByLabelText('Overall Health:'), { target: { value: 'Good' } });
     fireEvent.click(screen.getByLabelText('Queen Seen'));
-    fireEvent.change(screen.getByLabelText('Notes:'), { target: { value: 'Test notes' } });
+    fireEvent.change(screen.getByRole('textbox', { name: /notes/i }), {
+      target: { value: 'Test notes' },
+    });
 
     fireEvent.click(screen.getByText('Submit Inspection'));
 
@@ -131,7 +130,9 @@ describe('InspectionForm', () => {
     fireEvent.click(screen.getByText('Submit Inspection'));
 
     await waitFor(() => {
-      expect(screen.getByText('Failed to submit inspection: Submission failed')).toBeInTheDocument();
+      expect(
+        screen.getByText('Failed to submit inspection: Submission failed')
+      ).toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
@@ -154,7 +155,9 @@ describe('InspectionForm', () => {
 
     renderWithRouter(<InspectionForm initialInspection={mockInspection} />);
 
-    fireEvent.change(screen.getByLabelText('Notes:'), { target: { value: 'Updated notes' } });
+    fireEvent.change(screen.getByRole('textbox', { name: /notes/i }), {
+      target: { value: 'Updated notes' },
+    });
 
     fireEvent.click(screen.getByText('Update Inspection'));
 
@@ -191,7 +194,9 @@ describe('InspectionForm', () => {
 
     renderWithRouter(<InspectionForm initialInspection={mockInspection} />);
 
-    fireEvent.change(screen.getByLabelText('Notes:'), { target: { value: 'Updated notes' } });
+    fireEvent.change(screen.getByRole('textbox', { name: /notes/i }), {
+      target: { value: 'Updated notes' },
+    });
 
     fireEvent.click(screen.getByText('Update Inspection'));
 

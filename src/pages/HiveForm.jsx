@@ -28,8 +28,8 @@ const HiveForm = ({ initialData, apiaryId, onClose }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = "Name is required";
-    if (formData.children.length === 0) newErrors.children = "At least one box is required";
+    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (formData.children.length === 0) newErrors.children = 'At least one box is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -71,7 +71,7 @@ const HiveForm = ({ initialData, apiaryId, onClose }) => {
     if (validateForm()) {
       try {
         // Create Box documents first
-        const boxPromises = formData.children.map(box => 
+        const boxPromises = formData.children.map((box) =>
           createBoxMutation.mutateAsync({
             boxNumber: parseInt(box.boxNumber),
             type: box.type,
@@ -83,11 +83,11 @@ const HiveForm = ({ initialData, apiaryId, onClose }) => {
         // Prepare hive data with box ObjectIds
         const hiveData = {
           ...formData,
-          children: createdBoxes.map(box => box._id),
+          children: createdBoxes.map((box) => box._id),
         };
 
         const mutationFn = formData._id ? updateHiveMutation : createHiveMutation;
-        
+
         await mutationFn.mutateAsync(
           formData._id ? { hiveId: formData._id, hiveData } : { apiaryId, hiveData },
           {
@@ -210,16 +210,22 @@ const HiveForm = ({ initialData, apiaryId, onClose }) => {
         {errors.children && <p className="text-red-500 text-xs mt-1">{errors.children}</p>}
       </div>
       <div className="flex justify-between">
-        <Button type="submit" disabled={createHiveMutation.isLoading || updateHiveMutation.isLoading}>
-          {(createHiveMutation.isLoading || updateHiveMutation.isLoading) ? 'Saving...' : formData._id ? 'Update' : 'Create'} Hive
+        <Button
+          type="submit"
+          disabled={createHiveMutation.isLoading || updateHiveMutation.isLoading}
+        >
+          {createHiveMutation.isLoading || updateHiveMutation.isLoading
+            ? 'Saving...'
+            : formData._id
+              ? 'Update'
+              : 'Create'}{' '}
+          Hive
         </Button>
         <Button type="button" onClick={onClose} className="bg-gray-300 text-gray-700">
           Cancel
         </Button>
       </div>
-      {errors.submit && (
-        <div className="text-red-600">Error saving hive: {errors.submit}</div>
-      )}
+      {errors.submit && <div className="text-red-600">Error saving hive: {errors.submit}</div>}
     </form>
   );
 };

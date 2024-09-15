@@ -1,17 +1,18 @@
-"use client";
+'use client';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import userEvent from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Login from '../../components/forms/Login';
 import { AuthContext } from '../../context/AuthContext';
 import { speakText } from '../../utils/pollyService';
+import { render } from '../testUtils';
 
 // Mock the AuthContext and Polly service
 jest.mock('../../context/AuthContext', () => {
   const React = require('react');
-  AuthContext: React.createContext(null)
+  React.createContext(null);
 });
 jest.mock('../../utils/pollyService', () => ({
   speakText: jest.fn(),
@@ -117,11 +118,11 @@ describe('Login Component', () => {
   test('switches between login and register modes', async () => {
     renderLogin();
     const switchModeButton = screen.getByText(/Don't have an account\? Register/i);
-    
+
     fireEvent.click(switchModeButton);
     expect(screen.getByText(/Create an account/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/name/i)).toBeInTheDocument();
-    
+
     const switchBackButton = screen.getByText(/Already have an account\? Sign in/i);
     fireEvent.click(switchBackButton);
     expect(screen.getByText(/Sign in to your account/i)).toBeInTheDocument();

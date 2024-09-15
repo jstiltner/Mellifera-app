@@ -69,12 +69,16 @@ router.post('/hive-creation', auth, async (req, res) => {
     // Check if the apiary exists and belongs to the user
     const apiary = await Apiary.findOne({ _id: apiaryId, parent: req.user });
     if (!apiary) {
-      return res.status(404).json({ error: 'Not Found', message: 'Apiary not found or unauthorized' });
+      return res
+        .status(404)
+        .json({ error: 'Not Found', message: 'Apiary not found or unauthorized' });
     }
 
     // Validate required fields
     if (!boxes || boxes.length === 0) {
-      return res.status(400).json({ error: 'Bad Request', message: 'Name and at least one box are required' });
+      return res
+        .status(400)
+        .json({ error: 'Bad Request', message: 'Name and at least one box are required' });
     }
 
     // Create the hive

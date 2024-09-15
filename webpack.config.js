@@ -123,6 +123,6 @@ module.exports = {
     maxAssetSize: 512000,
   },
   externals: {
-    leaflet: 'L'
+    leaflet: 'L',
   },
 };

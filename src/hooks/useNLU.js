@@ -12,15 +12,15 @@ const useNLU = () => {
       const nluResponse = await processCommand(text);
       const intent = getIntent(nluResponse);
       const entities = getEntities(nluResponse);
-      
+
       // Generate a response based on the NLU results
       let response = "I've recorded your answer. ";
       if (intent === 'provide_information') {
-        response += "Thank you for providing that information. ";
+        response += 'Thank you for providing that information. ';
       } else if (intent === 'request_clarification') {
-        response += "If you need any clarification, please ask. ";
+        response += 'If you need any clarification, please ask. ';
       }
-      
+
       // Add entity-specific responses
       if (entities.condition) {
         response += `You mentioned the condition is ${entities.condition}. `;
@@ -28,7 +28,7 @@ const useNLU = () => {
       if (entities.presence) {
         response += `You indicated the presence is ${entities.presence}. `;
       }
-      
+
       setIsProcessing(false);
       return response;
     } catch (err) {

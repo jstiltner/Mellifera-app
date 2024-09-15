@@ -66,7 +66,9 @@ router.post('/:hiveId', auth, async (req, res) => {
     });
 
     if (!hive) {
-      return res.status(404).json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
+      return res
+        .status(404)
+        .json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
     }
 
     const newBox = new Box({

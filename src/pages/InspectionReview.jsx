@@ -36,9 +36,15 @@ const InspectionReview = () => {
           // Handle offline update
           if (!navigator.onLine) {
             // Update local storage
-            const offlineInspection = { ...updatedInspection, isOffline: true, offlineAction: 'update' };
+            const offlineInspection = {
+              ...updatedInspection,
+              isOffline: true,
+              offlineAction: 'update',
+            };
             localStorage.setItem(`inspection_${inspectionId}`, JSON.stringify(offlineInspection));
-            setSuccessMessage('Inspection updated offline. It will be synced when you are back online.');
+            setSuccessMessage(
+              'Inspection updated offline. It will be synced when you are back online.'
+            );
             setTimeout(() => setSuccessMessage(''), 3000);
           }
         },
@@ -61,7 +67,9 @@ const InspectionReview = () => {
               // Mark for deletion in local storage
               const offlineInspection = { ...inspection, isOffline: true, offlineAction: 'delete' };
               localStorage.setItem(`inspection_${inspectionId}`, JSON.stringify(offlineInspection));
-              setSuccessMessage('Inspection marked for deletion offline. It will be removed when you are back online.');
+              setSuccessMessage(
+                'Inspection marked for deletion offline. It will be removed when you are back online.'
+              );
               setTimeout(() => setSuccessMessage(''), 3000);
             }
           },
@@ -79,12 +87,8 @@ const InspectionReview = () => {
         </div>
       )}
       <div className="flex space-x-2 mb-4">
-        <Button onClick={() => navigate(`/hives/${hive}`)}>
-          Back to Hive Details
-        </Button>
-        <Button onClick={() => setIsEditModalOpen(true)}>
-          Edit Inspection
-        </Button>
+        <Button onClick={() => navigate(`/hives/${hive}`)}>Back to Hive Details</Button>
+        <Button onClick={() => setIsEditModalOpen(true)}>Edit Inspection</Button>
         <Button onClick={handleDelete} className="bg-red-500 hover:bg-red-600">
           Delete Inspection
         </Button>
@@ -92,8 +96,15 @@ const InspectionReview = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {Object.entries(inspection).map(([key, value]) => {
-          if (key === '_id' || key === '__v' || key === 'hive' || key === 'isOffline' || key === 'offlineAction') return null;
-          
+          if (
+            key === '_id' ||
+            key === '__v' ||
+            key === 'hive' ||
+            key === 'isOffline' ||
+            key === 'offlineAction'
+          )
+            return null;
+
           return (
             <div key={key} className="border p-4 rounded">
               <h2 className="font-semibold mb-2">{key}</h2>

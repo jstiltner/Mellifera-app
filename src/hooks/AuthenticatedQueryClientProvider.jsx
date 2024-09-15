@@ -6,21 +6,25 @@ import { globalQueryErrorHandler, globalMutationErrorHandler } from '../utils/er
 const AuthenticatedQueryClientProvider = ({ children }) => {
   const { token } = useAuthContext();
 
-  const queryClient = useMemo(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: 1,
-        refetchOnWindowFocus: false,
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        gcTime: 30 * 60 * 1000, // 30 minutes
-        onError: globalQueryErrorHandler,
-      },
-      mutations: {
-        retry: 1,
-        onError: globalMutationErrorHandler,
-      },
-    },
-  }), []);
+  const queryClient = useMemo(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: 1,
+            refetchOnWindowFocus: false,
+            staleTime: 5 * 60 * 1000, // 5 minutes
+            gcTime: 30 * 60 * 1000, // 30 minutes
+            onError: globalQueryErrorHandler,
+          },
+          mutations: {
+            retry: 1,
+            onError: globalMutationErrorHandler,
+          },
+        },
+      }),
+    []
+  );
 
   useMemo(() => {
     if (token) {
@@ -45,11 +49,7 @@ const AuthenticatedQueryClientProvider = ({ children }) => {
     }
   }, [token, queryClient]);
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 };
 
 export default AuthenticatedQueryClientProvider;

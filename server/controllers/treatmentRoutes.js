@@ -43,7 +43,9 @@ router.post('/', auth, async (req, res) => {
     const { hiveId, hiveIds, apiaryId, ...treatmentData } = req.body;
 
     if (!hiveId && !hiveIds && !apiaryId) {
-      return res.status(400).json({ error: 'Bad Request', message: 'Either hiveId, hiveIds, or apiaryId is required' });
+      return res
+        .status(400)
+        .json({ error: 'Bad Request', message: 'Either hiveId, hiveIds, or apiaryId is required' });
     }
 
     let hivesToTreat = [];
@@ -51,7 +53,9 @@ router.post('/', auth, async (req, res) => {
     if (apiaryId) {
       const apiary = await Apiary.findOne({ _id: apiaryId, parent: req.user });
       if (!apiary) {
-        return res.status(404).json({ error: 'Not Found', message: 'Apiary not found or unauthorized' });
+        return res
+          .status(404)
+          .json({ error: 'Not Found', message: 'Apiary not found or unauthorized' });
       }
       hivesToTreat = await Hive.find({ parent: apiaryId });
     } else if (hiveIds) {
@@ -93,7 +97,11 @@ router.post('/', auth, async (req, res) => {
     res.status(201).json(createdTreatments.length === 1 ? createdTreatments[0] : createdTreatments);
   } catch (error) {
     console.error('Error in treatment creation:', error);
-    res.status(400).json({ error: 'Bad Request', message: 'Error creating treatment(s)', details: error.message });
+    res.status(400).json({
+      error: 'Bad Request',
+      message: 'Error creating treatment(s)',
+      details: error.message,
+    });
   }
 });
 
@@ -135,7 +143,9 @@ router.get('/:hiveId', auth, async (req, res) => {
     });
 
     if (!hive) {
-      return res.status(404).json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
+      return res
+        .status(404)
+        .json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
     }
 
     const treatments = await Treatment.find({ hive: hiveId }).sort({ date: -1 });
@@ -143,7 +153,9 @@ router.get('/:hiveId', auth, async (req, res) => {
     res.status(200).json(treatments);
   } catch (error) {
     console.error('Error fetching treatments:', error);
-    res.status(400).json({ error: 'Bad Request', message: 'Error fetching treatments', details: error.message });
+    res
+      .status(400)
+      .json({ error: 'Bad Request', message: 'Error fetching treatments', details: error.message });
   }
 });
 
@@ -194,7 +206,9 @@ router.put('/:id', auth, async (req, res) => {
     });
 
     if (!hive) {
-      return res.status(404).json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
+      return res
+        .status(404)
+        .json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
     }
 
     // Update the treatment
@@ -208,7 +222,9 @@ router.put('/:id', auth, async (req, res) => {
     res.json(updatedTreatment);
   } catch (error) {
     console.error('Error updating Treatment:', error);
-    res.status(400).json({ error: 'Bad Request', message: 'Error updating Treatment', details: error.message });
+    res
+      .status(400)
+      .json({ error: 'Bad Request', message: 'Error updating Treatment', details: error.message });
   }
 });
 
@@ -252,7 +268,9 @@ router.delete('/:id', auth, async (req, res) => {
     });
 
     if (!hive) {
-      return res.status(404).json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
+      return res
+        .status(404)
+        .json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
     }
 
     // Remove the treatment from the hive's treatments array
@@ -270,7 +288,9 @@ router.delete('/:id', auth, async (req, res) => {
     res.json({ message: 'Treatment removed successfully' });
   } catch (error) {
     console.error('Error deleting treatment:', error);
-    res.status(400).json({ error: 'Bad Request', message: 'Error deleting treatment', details: error.message });
+    res
+      .status(400)
+      .json({ error: 'Bad Request', message: 'Error deleting treatment', details: error.message });
   }
 });
 

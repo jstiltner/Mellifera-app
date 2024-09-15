@@ -4,6 +4,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useUpdateHive } from '../../hooks/useHives';
 import { useUpdateBox } from '../../hooks/useBoxes';
 import ErrorMessage from '../common/ErrorMessage';
+import L from 'leaflet';
+
+// Add these imports
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
 const ApiaryMap = ({ apiaries }) => {
   const queryClient = useQueryClient();
@@ -11,6 +17,20 @@ const ApiaryMap = ({ apiaries }) => {
   const updateBoxMutation = useUpdateBox();
   const mapRef = useRef(null);
   const [mapError, setMapError] = useState(null);
+
+  // Add this section to create custom icons
+  const defaultIcon = L.icon({
+    iconUrl: markerIcon,
+    iconRetinaUrl: markerIcon2x,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    tooltipAnchor: [16, -28],
+    shadowSize: [41, 41],
+  });
+
+  L.Marker.prototype.options.icon = defaultIcon;
 
   const handleHiveDragEnd = (event, hive) => {
     const { lat, lng } = event.target.getLatLng();
@@ -55,9 +75,9 @@ const ApiaryMap = ({ apiaries }) => {
         queryClient.setQueryData(['apiaries'], (old) =>
           old.map((apiary) => ({
             ...apiary,
-            hives: apiary.hives.map((h) => 
-              h._id === hive._id 
-                ? { ...h, boxes: h.boxes.map((b) => b._id === newBox._id ? newBox : b) }
+            hives: apiary.hives.map((h) =>
+              h._id === hive._id
+                ? { ...h, boxes: h.boxes.map((b) => (b._id === newBox._id ? newBox : b)) }
                 : h
             ),
           }))
@@ -74,38 +94,54 @@ const ApiaryMap = ({ apiaries }) => {
   const mapStyle = {
     height: '100%',
     width: '100%',
-    zIndex: 1,
   };
 
-  const centerCoords = apiaries?.[0]
-    ? [apiaries[0].latitude ?? 0, apiaries[0].longitude ?? 0]
-    : [0, 0];
+  const getInitialCenter = () => {
+    if (!Array.isArray(apiaries) || apiaries.length === 0) {
+      return [0, 0];
+    }
+    return [apiaries[0].latitude ?? 0, apiaries[0].longitude ?? 0];
+  };
 
   const MapContent = () => {
     const map = useMap();
-    
+
     useEffect(() => {
       if (map) {
         mapRef.current = map;
         try {
           map.invalidateSize();
+
+          if (Array.isArray(apiaries) && apiaries.length > 0) {
+            const bounds = new L.LatLngBounds();
+            apiaries.forEach((apiary) => {
+              if (apiary.latitude != null && apiary.longitude != null) {
+                bounds.extend([apiary.latitude, apiary.longitude]);
+              }
+            });
+
+            if (bounds.isValid()) {
+              if (apiaries.length === 1) {
+                map.setView(bounds.getCenter(), 15);
+              } else {
+                map.fitBounds(bounds, { padding: [50, 50] });
+              }
+            }
+          }
         } catch (error) {
-          console.error('Error invalidating map size:', error);
+          console.error('Error initializing map:', error);
           setMapError('Error initializing map. Please try refreshing the page.');
         }
       }
 
       return () => {
         if (mapRef.current) {
-          // Remove all event listeners
           mapRef.current.off();
-          // Clear the map container
           mapRef.current.getContainer().innerHTML = '';
-          // Clear the map reference
           mapRef.current = null;
         }
       };
-    }, [map]);
+    }, [map, apiaries]);
 
     if (!Array.isArray(apiaries)) {
       console.error('Invalid apiaries data:', apiaries);
@@ -124,7 +160,11 @@ const ApiaryMap = ({ apiaries }) => {
             return null;
           }
           return (
-            <Marker key={apiary._id} position={[apiary.latitude, apiary.longitude]}>
+            <Marker
+              key={apiary._id}
+              position={[apiary.latitude, apiary.longitude]}
+              icon={defaultIcon}
+            >
               <Popup>
                 <h3>{apiary.name}</h3>
               </Popup>
@@ -142,6 +182,7 @@ const ApiaryMap = ({ apiaries }) => {
                       eventHandlers={{
                         dragend: (e) => handleHiveDragEnd(e, hive),
                       }}
+                      icon={defaultIcon}
                     >
                       <Popup>
                         <h4>{hive.name}</h4>
@@ -159,6 +200,7 @@ const ApiaryMap = ({ apiaries }) => {
                                 eventHandlers={{
                                   dragend: (e) => handleBoxDragEnd(e, hive, box),
                                 }}
+                                icon={defaultIcon}
                               >
                                 <Popup>
                                   <h5>Box {box.number}</h5>
@@ -182,13 +224,15 @@ const ApiaryMap = ({ apiaries }) => {
   }
 
   return (
-    <div style={{ height: '300px', width: '100%', position: 'relative' }}>
-      <MapContainer 
-        key={apiaries?.length ? apiaries[0]._id : 'default'} 
-        center={centerCoords} 
-        zoom={13} 
-        scrollWheelZoom={false} 
+    <div className="h-full w-full">
+      <MapContainer
+        key={apiaries?.length ? apiaries[0]._id : 'default'}
+        center={getInitialCenter()}
+        zoom={15}
+        scrollWheelZoom={true}
         style={mapStyle}
+        className="h-full"
+        zoomControl={true}
       >
         <MapContent />
       </MapContainer>

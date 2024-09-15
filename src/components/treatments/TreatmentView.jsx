@@ -87,31 +87,41 @@ const TreatmentView = ({ treatment, onClose }) => {
         </form>
       ) : (
         <div>
-          <p><strong>Type:</strong> {treatment.type}</p>
-          <p><strong>Dose:</strong> {treatment.dose}</p>
-          <p><strong>Date:</strong> {new Date(treatment.date).toLocaleDateString()}</p>
-          <p><strong>Weather Conditions:</strong> {treatment.weatherConditions}</p>
+          <p>
+            <strong>Type:</strong> {treatment.type}
+          </p>
+          <p>
+            <strong>Dose:</strong> {treatment.dose}
+          </p>
+          <p>
+            <strong>Date:</strong> {new Date(treatment.date).toLocaleDateString()}
+          </p>
+          <p>
+            <strong>Weather Conditions:</strong> {treatment.weatherConditions}
+          </p>
         </div>
       )}
-      {updateTreatment.isError && (
-        <ErrorMessage message={updateTreatment.error.message} />
-      )}
-      {deleteTreatment.isError && (
-        <ErrorMessage message={deleteTreatment.error.message} />
-      )}
+      {updateTreatment.isError && <ErrorMessage message={updateTreatment.error.message} />}
+      {deleteTreatment.isError && <ErrorMessage message={deleteTreatment.error.message} />}
       <div className="mt-4 space-x-2">
         {isEditing ? (
           <>
             <Button onClick={handleUpdate}>Save</Button>
-            <Button onClick={() => setIsEditing(false)} variant="secondary">Cancel</Button>
+            <Button onClick={() => setIsEditing(false)} variant="secondary">
+              Cancel
+            </Button>
           </>
         ) : (
           <>
             <Button onClick={() => setIsEditing(true)}>Edit</Button>
-            <Button onClick={handleDelete} variant="danger">Delete</Button>
+            <Button onClick={handleDelete} variant="danger">
+              Delete
+            </Button>
           </>
         )}
-        <Button onClick={onClose} variant="secondary">Close</Button>
+        <Button onClick={onClose} variant="secondary">
+          Close
+        </Button>
       </div>
     </div>
   );

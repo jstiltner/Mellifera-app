@@ -56,7 +56,11 @@ router.put('/:id', auth, async (req, res) => {
     // Check if the box exists and belongs to a hive owned by the user
     const box = await Box.findOne({
       _id: id,
-      parent: { $in: await Hive.find({ parent: { $in: await Apiary.find({ parent: req.user }).distinct('_id') } }).distinct('_id') },
+      parent: {
+        $in: await Hive.find({
+          parent: { $in: await Apiary.find({ parent: req.user }).distinct('_id') },
+        }).distinct('_id'),
+      },
     });
 
     if (!box) {

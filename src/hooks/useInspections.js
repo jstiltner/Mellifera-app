@@ -31,7 +31,9 @@ const fetchInspection = async (inspectionId) => {
     if (!navigator.onLine) {
       const cachedInspections = await inspectionsStore.getItem(`hive_${hiveId}`);
       if (cachedInspections) {
-        const cachedInspection = cachedInspections.find(inspection => inspection._id === inspectionId);
+        const cachedInspection = cachedInspections.find(
+          (inspection) => inspection._id === inspectionId
+        );
         if (cachedInspection) return cachedInspection;
       }
     }
@@ -42,13 +44,18 @@ const fetchInspection = async (inspectionId) => {
 const createInspection = async ({ hiveId, inspectionData }) => {
   if (navigator.onLine) {
     const { data } = await axios.post(`/api/inspections/${hiveId}`, inspectionData);
-    const cachedInspections = await inspectionsStore.getItem(`hive_${hiveId}`) || [];
+    const cachedInspections = (await inspectionsStore.getItem(`hive_${hiveId}`)) || [];
     await inspectionsStore.setItem(`hive_${hiveId}`, [...cachedInspections, data]);
     return data;
   } else {
     const tempId = Date.now().toString();
-    const newInspection = { ...inspectionData, _id: tempId, isOffline: true, offlineAction: 'create' };
-    const cachedInspections = await inspectionsStore.getItem(`hive_${hiveId}`) || [];
+    const newInspection = {
+      ...inspectionData,
+      _id: tempId,
+      isOffline: true,
+      offlineAction: 'create',
+    };
+    const cachedInspections = (await inspectionsStore.getItem(`hive_${hiveId}`)) || [];
     await inspectionsStore.setItem(`hive_${hiveId}`, [...cachedInspections, newInspection]);
     return newInspection;
   }
@@ -56,35 +63,40 @@ const createInspection = async ({ hiveId, inspectionData }) => {
 
 const updateInspection = async ({ hiveId, inspectionId, inspectionData }) => {
   if (navigator.onLine) {
-    const { data } = await axios.put(`/api/hives/${hiveId}/inspections/${inspectionId}`, inspectionData);
-    const cachedInspections = await inspectionsStore.getItem(`hive_${hiveId}`) || [];
-    const updatedCachedInspections = cachedInspections.map(inspection => 
+    const { data } = await axios.put(
+      `/api/hives/${hiveId}/inspections/${inspectionId}`,
+      inspectionData
+    );
+    const cachedInspections = (await inspectionsStore.getItem(`hive_${hiveId}`)) || [];
+    const updatedCachedInspections = cachedInspections.map((inspection) =>
       inspection._id === inspectionId ? data : inspection
     );
     await inspectionsStore.setItem(`hive_${hiveId}`, updatedCachedInspections);
     return data;
   } else {
-    const cachedInspections = await inspectionsStore.getItem(`hive_${hiveId}`) || [];
-    const updatedCachedInspections = cachedInspections.map(inspection => 
-      inspection._id === inspectionId 
+    const cachedInspections = (await inspectionsStore.getItem(`hive_${hiveId}`)) || [];
+    const updatedCachedInspections = cachedInspections.map((inspection) =>
+      inspection._id === inspectionId
         ? { ...inspection, ...inspectionData, isOffline: true, offlineAction: 'update' }
         : inspection
     );
     await inspectionsStore.setItem(`hive_${hiveId}`, updatedCachedInspections);
-    return updatedCachedInspections.find(inspection => inspection._id === inspectionId);
+    return updatedCachedInspections.find((inspection) => inspection._id === inspectionId);
   }
 };
 
 const deleteInspection = async ({ hiveId, inspectionId }) => {
   if (navigator.onLine) {
     await axios.delete(`/api/hives/${hiveId}/inspections/${inspectionId}`);
-    const cachedInspections = await inspectionsStore.getItem(`hive_${hiveId}`) || [];
-    const updatedCachedInspections = cachedInspections.filter(inspection => inspection._id !== inspectionId);
+    const cachedInspections = (await inspectionsStore.getItem(`hive_${hiveId}`)) || [];
+    const updatedCachedInspections = cachedInspections.filter(
+      (inspection) => inspection._id !== inspectionId
+    );
     await inspectionsStore.setItem(`hive_${hiveId}`, updatedCachedInspections);
   } else {
-    const cachedInspections = await inspectionsStore.getItem(`hive_${hiveId}`) || [];
-    const updatedCachedInspections = cachedInspections.map(inspection => 
-      inspection._id === inspectionId 
+    const cachedInspections = (await inspectionsStore.getItem(`hive_${hiveId}`)) || [];
+    const updatedCachedInspections = cachedInspections.map((inspection) =>
+      inspection._id === inspectionId
         ? { ...inspection, isOffline: true, offlineAction: 'delete' }
         : inspection
     );
@@ -117,9 +129,9 @@ export const useCreateInspection = () => {
     onMutate: async ({ hiveId, inspectionData }) => {
       await queryClient.cancelQueries({ queryKey: ['inspections', hiveId] });
       const previousInspections = queryClient.getQueryData(['inspections', hiveId]);
-      
-      const optimisticInspection = { 
-        ...inspectionData, 
+
+      const optimisticInspection = {
+        ...inspectionData,
         _id: 'temp-' + Date.now(),
         createdAt: new Date().toISOString(),
       };
@@ -149,7 +161,7 @@ export const useUpdateInspection = () => {
     onMutate: async ({ hiveId, inspectionId, inspectionData }) => {
       await queryClient.cancelQueries({ queryKey: ['inspections', hiveId] });
       const previousInspections = queryClient.getQueryData(['inspections', hiveId]);
-      
+
       queryClient.setQueryData(['inspections', hiveId], (old = []) =>
         old.map((inspection) =>
           inspection._id === inspectionId ? { ...inspection, ...inspectionData } : inspection
@@ -177,7 +189,7 @@ export const useDeleteInspection = () => {
     onMutate: async ({ hiveId, inspectionId }) => {
       await queryClient.cancelQueries({ queryKey: ['inspections', hiveId] });
       const previousInspections = queryClient.getQueryData(['inspections', hiveId]);
-      
+
       queryClient.setQueryData(['inspections', hiveId], (old = []) =>
         old.filter((inspection) => inspection._id !== inspectionId)
       );
@@ -200,26 +212,40 @@ window.addEventListener('online', async () => {
   for (const key of keys) {
     const hiveId = key.split('_')[1];
     const offlineInspections = await inspectionsStore.getItem(key);
-    const offlineModifiedInspections = offlineInspections.filter((inspection) => inspection.isOffline);
-    
+    const offlineModifiedInspections = offlineInspections.filter(
+      (inspection) => inspection.isOffline
+    );
+
     for (const inspection of offlineModifiedInspections) {
       try {
         let data;
         if (inspection.offlineAction === 'create') {
-          const { data: createdData } = await axios.post(`/api/hives/${hiveId}/inspections`, inspection);
+          const { data: createdData } = await axios.post(
+            `/api/hives/${hiveId}/inspections`,
+            inspection
+          );
           data = createdData;
         } else if (inspection.offlineAction === 'update') {
-          const { data: updatedData } = await axios.put(`/api/hives/${hiveId}/inspections/${inspection._id}`, inspection);
+          const { data: updatedData } = await axios.put(
+            `/api/hives/${hiveId}/inspections/${inspection._id}`,
+            inspection
+          );
           data = updatedData;
         } else if (inspection.offlineAction === 'delete') {
           await axios.delete(`/api/hives/${hiveId}/inspections/${inspection._id}`);
           data = null;
         }
 
-        const updatedInspections = offlineInspections.map((i) =>
-          i._id === inspection._id ? (data ? { ...data, isOffline: false, offlineAction: null } : null) : i
-        ).filter(Boolean);
-        
+        const updatedInspections = offlineInspections
+          .map((i) =>
+            i._id === inspection._id
+              ? data
+                ? { ...data, isOffline: false, offlineAction: null }
+                : null
+              : i
+          )
+          .filter(Boolean);
+
         await inspectionsStore.setItem(key, updatedInspections);
       } catch (error) {
         console.error('Failed to sync offline inspection:', error);

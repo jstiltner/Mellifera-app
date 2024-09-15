@@ -10,8 +10,8 @@ jest.mock('localforage', () => ({
     createInstance: jest.fn(),
     getItem: jest.fn(),
     setItem: jest.fn(),
-    config: jest.fn()
-  }
+    config: jest.fn(),
+  },
 }));
 // Mock the useInspections hook
 jest.mock('../../hooks/useInspections');

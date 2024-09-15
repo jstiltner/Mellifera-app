@@ -2,11 +2,17 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import localforage from 'localforage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
+import Menu from '../components/layout/Menu';
 
 const Settings = () => {
   const queryClient = useQueryClient();
 
-  const { data: settings, isLoading, isError, error } = useQuery({
+  const {
+    data: settings,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ['settings'],
     queryFn: async () => {
       const storedSettings = await localforage.getItem('settings');
@@ -34,9 +40,13 @@ const Settings = () => {
   if (isError) return <ErrorMessage message={error?.message || 'Error loading settings'} />;
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Settings</h1>
+    <div className="flex flex-col md:flex-row min-h-screen bg-gray-100">
+      <aside className="w-full md:w-64 bg-white shadow-md p-4 md:h-screen md:overflow-y-auto">
+        <Menu />
+      </aside>
+      {/* // <div className="p-4"> */}
       <div className="mb-4">
+        <h1 className="text-2xl font-bold mb-4">Settings</h1>
         <label className="block mb-2">
           Theme:
           <select
@@ -61,7 +71,9 @@ const Settings = () => {
         </label>
       </div>
       {updateSettingsMutation.isError && (
-        <ErrorMessage message={updateSettingsMutation.error?.message || 'Error updating settings'} />
+        <ErrorMessage
+          message={updateSettingsMutation.error?.message || 'Error updating settings'}
+        />
       )}
       {updateSettingsMutation.isSuccess && (
         <div className="mt-4 text-green-600">Settings updated successfully</div>

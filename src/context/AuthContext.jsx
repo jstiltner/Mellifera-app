@@ -7,7 +7,6 @@ import axios from 'axios';
 axios.defaults.baseURL = 'http://localhost:5050';
 const API_BASE_URL = '/api'; // Adjust this if your API has a different base URL
 
-
 const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
@@ -111,25 +110,24 @@ const AuthProvider = ({ children }) => {
     };
   }, [logout]);
 
-  const contextValue = useMemo(() => ({
-    user,
-    setUser,
-    token,
-    setToken,
-    login,
-    logout,
-    fetchUser,
-    isLoading,
-    isAuthenticated,
-    authError,
-    setAuthError,
-  }), [user, token, login, logout, fetchUser, isLoading, isAuthenticated, authError]);
-
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+  const contextValue = useMemo(
+    () => ({
+      user,
+      setUser,
+      token,
+      setToken,
+      login,
+      logout,
+      fetchUser,
+      isLoading,
+      isAuthenticated,
+      authError,
+      setAuthError,
+    }),
+    [user, token, login, logout, fetchUser, isLoading, isAuthenticated, authError]
   );
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 };
 
 const useAuthContext = () => {

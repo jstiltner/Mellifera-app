@@ -2,13 +2,6 @@ const SharedSchema = require('./SharedSchema');
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const TreatmentSchema = new Schema({
-  type: { type: String, required: true },
-  dose: { type: String, required: true },
-  date: { type: Date, required: true },
-  weatherConditions: { type: String, required: true },
-});
-
 const HiveSchema = new Schema({
   ...SharedSchema.tree,
   name: { type: String, required: false },
@@ -17,6 +10,11 @@ const HiveSchema = new Schema({
   notes: { type: String },
   children: [{ type: Schema.Types.ObjectId, ref: 'Box' }], // Array of references to Box documents
   inspections: [{ type: Schema.Types.ObjectId, ref: 'Inspection', default: [] }], // Array of references to Inspection documents
+  treatments: [{ type: Schema.Types.ObjectId, ref: 'Treatment', default: [] }], // Array of references to Treatment documents
+  feedings: [{ type: Schema.Types.ObjectId, ref: 'Feeding', default: [] }], // New field for feedings
+  lastInspection: { type: Date },
+  lastTreatment: { type: Date },
+  lastFeeding: { type: Date },
   hasInnerCover: {
     type: Boolean,
     default: false,
@@ -71,8 +69,16 @@ const HiveSchema = new Schema({
   treatmentRound: {
     type: Number,
   },
-  treatmentHistory: [TreatmentSchema], // New field for treatment history
+  mostRecentInspection: { type: mongoose.Schema.Types.ObjectId, ref: 'Inspection' },
 });
+
+// Static method to update the most recent inspection
+HiveSchema.statics.updateMostRecentInspection = async function (hiveId, inspectionId) {
+  await this.findByIdAndUpdate(hiveId, {
+    mostRecentInspection: inspectionId,
+    lastInspection: new Date(),
+  });
+};
 
 HiveSchema.virtual('apiary', {
   ref: 'Apiary',
@@ -82,12 +88,20 @@ HiveSchema.virtual('apiary', {
 });
 
 // Pre-find hook to populate the 'children' field with full box documents
-// and the three most recent inspections
+// and the most recent inspections, treatments, and feedings
 HiveSchema.pre('find', function (next) {
   this.populate('children');
   this.populate({
     path: 'inspections',
-    options: { sort: { date: -1 }, limit: 15 }
+    options: { sort: { date: -1 }, limit: 15 },
+  });
+  this.populate({
+    path: 'treatments',
+    options: { sort: { date: -1 }, limit: 5 },
+  });
+  this.populate({
+    path: 'feedings',
+    options: { sort: { date: -1 }, limit: 5 },
   });
   next();
 });
@@ -96,8 +110,30 @@ HiveSchema.pre('findOne', function (next) {
   this.populate('children');
   this.populate({
     path: 'inspections',
-    options: { sort: { date: -1 }, limit: 15 }
+    options: { sort: { date: -1 }, limit: 15 },
   });
+  this.populate({
+    path: 'treatments',
+    options: { sort: { date: -1 }, limit: 5 },
+  });
+  this.populate({
+    path: 'feedings',
+    options: { sort: { date: -1 }, limit: 5 },
+  });
+  next();
+});
+
+// Pre-save hook to update lastInspection, lastTreatment, and lastFeeding
+HiveSchema.pre('save', function (next) {
+  if (this.inspections.length > 0) {
+    this.lastInspection = this.inspections[this.inspections.length - 1].date;
+  }
+  if (this.treatments.length > 0) {
+    this.lastTreatment = this.treatments[this.treatments.length - 1].date;
+  }
+  if (this.feedings.length > 0) {
+    this.lastFeeding = this.feedings[this.feedings.length - 1].date;
+  }
   next();
 });
 

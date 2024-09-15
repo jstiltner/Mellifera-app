@@ -13,9 +13,7 @@ export default defineConfig(({ command, mode }) => {
     plugins: [
       react({
         babel: {
-          plugins: [
-            ['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }],
-          ],
+          plugins: [['@babel/plugin-transform-react-jsx', { runtime: 'automatic' }]],
         },
       }),
       legacy({
@@ -31,6 +29,7 @@ export default defineConfig(({ command, mode }) => {
         brotliSize: true,
       }),
     ],
+    base: '',
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src'),

@@ -395,7 +395,10 @@ router.get('/apiaries', auth, async (req, res) => {
     res.status(200).json(apiaries);
   } catch (error) {
     console.error(`Error fetching apiaries for user ${req.user}:`, error);
-    res.status(500).json({ error: 'Internal Server Error', message: 'An error occurred while fetching apiaries' });
+    res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'An error occurred while fetching apiaries',
+    });
   }
 });
 

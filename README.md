@@ -108,36 +108,44 @@ Mellifera allows beekeepers to easily record their observations and manage their
 
 Mellifera's Voice Command UI allows users to interact with the application using natural language commands. Here's a step-by-step demonstration of how to use voice commands for common tasks:
 
-1. **Start Listening**: 
+1. **Start Listening**:
+
    - Click the "Start Listening" button or say "Start listening" to activate voice commands.
    - The app will respond with a prompt like "I'm listening" or "Voice commands activated."
 
 2. **Select an Apiary**:
+
    - Command: "Select apiary [name]"
    - Example: "Select apiary Sunflower Fields"
    - The app will confirm the selection: "Apiary Sunflower Fields selected."
 
 3. **Create a New Hive**:
+
    - Command: "Add hive" or "Create new hive"
    - The app will navigate to the hive creation form and confirm: "Navigating to create a new hive."
 
 4. **Start an Inspection**:
+
    - Command: "Start inspection" or "Begin hive check"
    - The app will navigate to the inspection form for the selected apiary and confirm: "Starting a new inspection for Sunflower Fields apiary."
 
 5. **View Apiaries**:
+
    - Command: "Show apiaries" or "List bee yards"
    - The app will navigate to the apiaries list and confirm: "Displaying the list of apiaries."
 
 6. **Create a New Apiary**:
+
    - Command: "Create apiary" or "Add new bee yard"
    - The app will navigate to the apiary creation form and confirm: "Navigating to create a new apiary."
 
 7. **Return to Dashboard**:
+
    - Command: "Go to dashboard" or "Show main screen"
    - The app will navigate to the main dashboard and confirm: "Returning to the main dashboard."
 
 8. **Get Help**:
+
    - Command: "Show help" or "What can you do?"
    - The app will display or speak a list of available commands.
 
@@ -149,22 +157,28 @@ Mellifera's Voice Command UI allows users to interact with the application using
 
 Mellifera uses Natural Language Understanding (NLU) to process voice commands and convert them into actionable instructions. Here's an overview of how the NLU is implemented:
 
-1. **Speech Recognition**: 
+1. **Speech Recognition**:
+
    - The app uses the Web Speech API (via the `useSpeechRecognition` hook) to convert spoken words into text.
 
 2. **Command Processing**:
+
    - The transcribed text is sent to a backend service (accessed through the `useVoiceCommand` hook) that uses advanced NLP techniques to understand the user's intent.
 
 3. **Context-Aware Processing**:
+
    - The NLU system takes into account the current context (e.g., selected apiary, current page) to improve command interpretation accuracy.
 
 4. **Action Determination**:
+
    - Based on the understood intent and context, the system determines the appropriate action (e.g., navigate to a page, create a new entity, or provide information).
 
 5. **Feedback Loop**:
+
    - The app provides audio feedback using text-to-speech, confirming the understood command and the action taken.
 
 6. **Error Handling**:
+
    - If a command is not understood or cannot be executed, the system provides helpful error messages and suggestions.
 
 7. **Continuous Learning**:
@@ -213,6 +227,7 @@ Jason L Stiltner - [@jasonlstiltner](https://x.com/jasonlstiltner) - mr@jasonsti
 Project Link: [https://github.com/jstiltner/Mellifera-app](https://github.com/jstiltner/Mellifera-app)
 
 <!-- MARKDOWN LINKS & IMAGES -->
+
 [React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
 [React-url]: https://reactjs.org/
 [Bootstrap.com]: https://img.shields.io/badge/Bootstrap-563D7C?style=for-the-badge&logo=bootstrap&logoColor=white

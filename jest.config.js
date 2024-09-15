@@ -8,11 +8,9 @@ module.exports = {
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
+    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { configFile: './.babelrc' }],
   },
-  transformIgnorePatterns: [
-    '/node_modules/(?!(@testing-library/jest-dom|@tanstack/react-query)/)',
-  ],
+  transformIgnorePatterns: ['/node_modules/(?!(@testing-library/jest-dom|@tanstack/react-query)/)'],
   collectCoverage: true,
   coverageReporters: ['text', 'lcov', 'html'],
   coverageDirectory: 'coverage',

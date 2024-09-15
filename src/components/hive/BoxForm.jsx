@@ -48,39 +48,33 @@ const BoxForm = ({ initialBox, onSuccess, closeModal }) => {
       );
     } else {
       console.log('Attempting to create box:', box);
-      createBox.mutate(
-        box,
-        {
-          onSuccess: (data) => {
-            console.log('Box created successfully:', data);
-            setBox({ boxNumber: '', type: '', frames: 10 });
-            if (onSuccess) onSuccess(data);
-            if (closeModal) closeModal();
-          },
-          onError: (error) => {
-            console.error('Error creating box:', error);
-          },
-        }
-      );
+      createBox.mutate(box, {
+        onSuccess: (data) => {
+          console.log('Box created successfully:', data);
+          setBox({ boxNumber: '', type: '', frames: 10 });
+          if (onSuccess) onSuccess(data);
+          if (closeModal) closeModal();
+        },
+        onError: (error) => {
+          console.error('Error creating box:', error);
+        },
+      });
     }
   };
 
   const handleDelete = () => {
     if (isEditing && window.confirm('Are you sure you want to delete this box?')) {
       console.log('Attempting to delete box:', box._id);
-      deleteBox.mutate(
-        box._id,
-        {
-          onSuccess: () => {
-            console.log('Box deleted successfully');
-            if (onSuccess) onSuccess();
-            if (closeModal) closeModal();
-          },
-          onError: (error) => {
-            console.error('Error deleting box:', error);
-          },
-        }
-      );
+      deleteBox.mutate(box._id, {
+        onSuccess: () => {
+          console.log('Box deleted successfully');
+          if (onSuccess) onSuccess();
+          if (closeModal) closeModal();
+        },
+        onError: (error) => {
+          console.error('Error deleting box:', error);
+        },
+      });
     }
   };
 

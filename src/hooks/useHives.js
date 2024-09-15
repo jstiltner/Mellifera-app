@@ -4,7 +4,7 @@ import axios from 'axios';
 const fetchHives = async ({ apiaryId, pageParam = 1 }) => {
   try {
     const { data } = await axios.get(`/api/hives`, {
-      params: { apiaryId, page: pageParam, limit: 10 }
+      params: { apiaryId, page: pageParam, limit: 10 },
     });
     return data;
   } catch (error) {
@@ -86,7 +86,7 @@ export const useHives = ({ apiaryId }) => {
     select: (data) => ({
       pages: data.pages,
       pageParams: data.pageParams,
-      hives: data.pages.flatMap(page => page.hives)
+      hives: data.pages.flatMap((page) => page.hives),
     }),
   });
 };
@@ -102,12 +102,12 @@ export const useHive = ({ hiveId }) => {
     retry: 3, // Retry 3 times on failure
     select: (data) => ({
       ...data,
-      boxCount: data.children?.length || 0
+      boxCount: data.children?.length || 0,
     }),
     onError: (error) => {
       console.error('Error fetching hive:', error);
       // You can add additional error handling here, such as showing a toast notification
-    }
+    },
   });
 };
 
@@ -127,7 +127,7 @@ export const useCreateHive = () => {
               pages: old.pages.map((page, index) =>
                 index === 0 ? { ...page, hives: [newHiveData, ...page.hives] } : page
               ),
-              hives: [newHiveData, ...(old.hives || [])]
+              hives: [newHiveData, ...(old.hives || [])],
             }
           : { pages: [{ hives: [newHiveData] }], hives: [newHiveData] };
       });
@@ -142,7 +142,7 @@ export const useCreateHive = () => {
                 ...page,
                 hives: page.hives.map((hive) => (hive._id === 'temp-id' ? data : hive)),
               })),
-              hives: old.hives.map((hive) => (hive._id === 'temp-id' ? data : hive))
+              hives: old.hives.map((hive) => (hive._id === 'temp-id' ? data : hive)),
             }
           : { pages: [{ hives: [data] }], hives: [data] };
       });
@@ -166,7 +166,10 @@ export const useUpdateHive = () => {
     onMutate: async (updatedHive) => {
       await queryClient.cancelQueries({ queryKey: ['hive', updatedHive.hiveId] });
       const previousHive = queryClient.getQueryData(['hive', updatedHive.hiveId]);
-      queryClient.setQueryData(['hive', updatedHive.hiveId], old => ({ ...old, ...updatedHive.hiveData }));
+      queryClient.setQueryData(['hive', updatedHive.hiveId], (old) => ({
+        ...old,
+        ...updatedHive.hiveData,
+      }));
       return { previousHive };
     },
     onSuccess: (data, { hiveId }) => {
@@ -197,7 +200,7 @@ export const useAddBox = () => {
         return {
           ...oldData,
           children: [...(oldData.children || []), newBox],
-          boxCount: (oldData.boxCount || 0) + 1
+          boxCount: (oldData.boxCount || 0) + 1,
         };
       });
       return { previousHive };
@@ -207,7 +210,7 @@ export const useAddBox = () => {
         if (!oldData) return oldData;
         return {
           ...oldData,
-          children: oldData.children.map(box => box._id === 'temp-id' ? newBox : box),
+          children: oldData.children.map((box) => (box._id === 'temp-id' ? newBox : box)),
         };
       });
       queryClient.invalidateQueries({ queryKey: ['hives'] });
@@ -265,10 +268,10 @@ export const useDeleteBox = () => {
       queryClient.setQueryData(['hive', hiveId], (oldHive) => {
         if (!oldHive) return oldHive;
         const updatedChildren = oldHive.children.filter((box) => box._id !== boxId);
-        return { 
-          ...oldHive, 
+        return {
+          ...oldHive,
           children: updatedChildren,
-          boxCount: oldHive.boxCount - 1
+          boxCount: oldHive.boxCount - 1,
         };
       });
       return { previousHive };

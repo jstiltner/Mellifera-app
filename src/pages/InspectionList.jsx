@@ -1,70 +1,41 @@
-import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import Menu from '../components/layout/Menu';
+import ReusableList from '../components/common/ReusableList';
+import { useInspections } from '../hooks/useInspections';
+import ErrorMessage from '../components/common/ErrorMessage';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
-const InspectionList = ({ inspections, onEdit, onDelete }) => {
-  if (!inspections || inspections.length === 0) {
-    return (
-      <div className="container mx-auto p-4">
-        <h2 className="text-2xl font-bold mb-4">Inspections</h2>
-        <p className="text-gray-600">No inspections found.</p>
-      </div>
-    );
-  }
+const InspectionList = () => {
+  const { getInspections } = useInspections();
+  const {
+    data: inspections,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['inspections'],
+    queryFn: getInspections,
+  });
+
+  if (isLoading) return <LoadingSpinner />;
+  if (isError) return <ErrorMessage message={error.message} />;
 
   return (
-    <div className="container mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">Inspections</h2>
-      <ul className="space-y-4">
-        {inspections.map((inspection) => (
-          <li key={inspection._id} className="bg-white shadow-md rounded-lg p-4">
-            <h3 className="text-xl font-semibold mb-2">Hive: {inspection.hiveId}</h3>
-            <p>
-              <strong>Date:</strong> {new Date(inspection.date).toLocaleDateString()}
-            </p>
-            <p>
-              <strong>Queen Seen:</strong> {inspection.queenSeen ? 'Yes' : 'No'}
-            </p>
-            <p>
-              <strong>Eggs Seen:</strong> {inspection.eggsSeen ? 'Yes' : 'No'}
-            </p>
-            <p>
-              <strong>Larvae Seen:</strong> {inspection.larvaeSeen ? 'Yes' : 'No'}
-            </p>
-            <p>
-              <strong>Capped Brood Seen:</strong> {inspection.cappedBroodSeen ? 'Yes' : 'No'}
-            </p>
-            <p>
-              <strong>Honey Stores:</strong> {inspection.honeyStores}
-            </p>
-            <p>
-              <strong>Temperament:</strong> {inspection.temperament}
-            </p>
-            <p>
-              <strong>Diseases:</strong> {inspection.diseases || 'None'}
-            </p>
-            <p>
-              <strong>Notes:</strong> {inspection.notes || 'No notes'}
-            </p>
-            <div className="mt-4 space-x-2">
-              <button
-                onClick={() => onEdit(inspection)}
-                className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to delete this inspection?')) {
-                    onDelete(inspection._id);
-                  }
-                }}
-                className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
-              >
-                Delete
-              </button>
-            </div>
-          </li>
-        ))}
-      </ul>
+    <div className="container mx-auto px-4">
+      <Menu />
+      <h1 className="text-2xl font-bold my-4">Inspection List</h1>
+      <ReusableList
+        items={inspections}
+        renderItem={(inspection) => (
+          <div className="bg-white shadow rounded-lg p-4 mb-4">
+            <h2 className="text-xl font-semibold">{inspection.hive.name}</h2>
+            <p>Date: {new Date(inspection.date).toLocaleDateString()}</p>
+            <p>Queen Seen: {inspection.queenSeen ? 'Yes' : 'No'}</p>
+            <p>Brood Pattern: {inspection.broodPattern}</p>
+            <p>Hive Strength: {inspection.hiveStrength}</p>
+          </div>
+        )}
+      />
     </div>
   );
 };

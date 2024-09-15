@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import axios from 'axios';
 import { useTreatments } from '../../hooks/useTreatments';
@@ -14,14 +14,13 @@ const queryClient = new QueryClient({
 });
 
 const wrapper = ({ children }) => (
-  <QueryClientProvider client={queryClient}>
-    {children}
-  </QueryClientProvider>
+  <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
 );
 
 describe('useTreatments', () => {
   beforeEach(() => {
     queryClient.clear();
+    jest.resetAllMocks();
   });
 
   it('should fetch treatments by hive', async () => {
@@ -31,15 +30,17 @@ describe('useTreatments', () => {
     ];
     axios.get.mockResolvedValueOnce({ data: mockTreatments });
 
-    const { result, waitFor } = renderHook(() => useTreatments(), { wrapper });
+    const { result } = renderHook(() => useTreatments(), { wrapper });
 
-    const { getTreatmentsByHive } = result.current;
-    const { data: treatments } = getTreatmentsByHive('hive123');
+    result.current.getTreatmentsByHive('hive123');
 
-    await waitFor(() => treatments);
+    await waitFor(
+      () => expect(result.current.getTreatmentsByHive('hive123').isSuccess).toBe(true),
+      { timeout: 2000 }
+    );
 
     expect(axios.get).toHaveBeenCalledWith('/api/treatments/hive123');
-    expect(treatments).toEqual(mockTreatments);
+    expect(result.current.getTreatmentsByHive('hive123').data).toEqual(mockTreatments);
   });
 
   it('should create a treatment', async () => {
@@ -47,53 +48,61 @@ describe('useTreatments', () => {
     const mockResponse = { ...newTreatment, _id: '3' };
     axios.post.mockResolvedValueOnce({ data: mockResponse });
 
-    const { result, waitFor } = renderHook(() => useTreatments(), { wrapper });
-
-    const { createTreatment } = result.current;
+    const { result } = renderHook(() => useTreatments(), { wrapper });
 
     await act(async () => {
-      await createTreatment.mutateAsync(newTreatment);
+      await result.current.createTreatment.mutateAsync(newTreatment);
     });
 
-    await waitFor(() => createTreatment.isSuccess);
+    await waitFor(() => expect(result.current.createTreatment.isSuccess).toBe(true), {
+      timeout: 2000,
+    });
 
     expect(axios.post).toHaveBeenCalledWith('/api/treatments', newTreatment);
-    expect(createTreatment.data).toEqual(mockResponse);
+    expect(result.current.createTreatment.data).toEqual(mockResponse);
   });
 
   it('should update a treatment', async () => {
-    const updatedTreatment = { _id: '1', type: 'Varroa', dose: '7ml', date: '2023-05-02', hiveId: 'hive123' };
+    const updatedTreatment = {
+      _id: '1',
+      type: 'Varroa',
+      dose: '7ml',
+      date: '2023-05-02',
+      hiveId: 'hive123',
+    };
     axios.put.mockResolvedValueOnce({ data: updatedTreatment });
 
-    const { result, waitFor } = renderHook(() => useTreatments(), { wrapper });
-
-    const { updateTreatment } = result.current;
+    const { result } = renderHook(() => useTreatments(), { wrapper });
 
     await act(async () => {
-      await updateTreatment.mutateAsync(updatedTreatment);
+      await result.current.updateTreatment.mutateAsync(updatedTreatment);
     });
 
-    await waitFor(() => updateTreatment.isSuccess);
+    await waitFor(() => expect(result.current.updateTreatment.isSuccess).toBe(true), {
+      timeout: 2000,
+    });
 
     expect(axios.put).toHaveBeenCalledWith('/api/treatments/1', updatedTreatment);
-    expect(updateTreatment.data).toEqual(updatedTreatment);
+    expect(result.current.updateTreatment.data).toEqual(updatedTreatment);
   });
 
   it('should delete a treatment', async () => {
     const treatmentId = '1';
     axios.delete.mockResolvedValueOnce({ data: { message: 'Treatment deleted successfully' } });
 
-    const { result, waitFor } = renderHook(() => useTreatments(), { wrapper });
-
-    const { deleteTreatment } = result.current;
+    const { result } = renderHook(() => useTreatments(), { wrapper });
 
     await act(async () => {
-      await deleteTreatment.mutateAsync(treatmentId);
+      await result.current.deleteTreatment.mutateAsync(treatmentId);
     });
 
-    await waitFor(() => deleteTreatment.isSuccess);
+    await waitFor(() => expect(result.current.deleteTreatment.isSuccess).toBe(true), {
+      timeout: 2000,
+    });
 
     expect(axios.delete).toHaveBeenCalledWith(`/api/treatments/${treatmentId}`);
-    expect(deleteTreatment.data).toEqual({ message: 'Treatment deleted successfully' });
+    expect(result.current.deleteTreatment.data).toEqual({
+      message: 'Treatment deleted successfully',
+    });
   });
 });

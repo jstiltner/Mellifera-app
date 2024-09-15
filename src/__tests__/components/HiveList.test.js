@@ -10,7 +10,14 @@ jest.mock('../../hooks/useHives');
 
 const mockHives = [
   { _id: '1', name: 'Hive 1', queenId: 'Q1', status: 'Active', notes: 'Test hive 1', children: [] },
-  { _id: '2', name: 'Hive 2', queenId: 'Q2', status: 'Inactive', notes: 'Test hive 2', children: [] },
+  {
+    _id: '2',
+    name: 'Hive 2',
+    queenId: 'Q2',
+    status: 'Inactive',
+    notes: 'Test hive 2',
+    children: [],
+  },
 ];
 
 const queryClient = new QueryClient();
@@ -135,6 +142,8 @@ describe('HiveList', () => {
 
     renderWithProviders(<HiveList />);
 
-    expect(screen.getByText('No hives found. Create a new hive to get started.')).toBeInTheDocument();
+    expect(
+      screen.getByText('No hives found. Create a new hive to get started.')
+    ).toBeInTheDocument();
   });
 });

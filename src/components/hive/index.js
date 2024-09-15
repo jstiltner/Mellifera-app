@@ -1,5 +1,9 @@
-import BoxCreationForm from './BoxCreationForm';
-import BoxForm from './BoxForm';
-import InspectionAIFlow from './InspectionAIFlow';
-
-export { BoxCreationForm, BoxForm, InspectionAIFlow };
+export { default as HiveDiagram } from './HiveDiagram';
+export { default as HiveMap } from './HiveMap';
+export { default as BoxCreationForm } from './BoxCreationForm';
+export { default as BoxForm } from './BoxForm';
+export { default as FeedingSection } from './FeedingSection';
+export { default as HiveInfoSection } from './HiveInfoSection';
+export { default as InspectionAIFlow } from './InspectionAIFlow';
+export { default as InspectionSection } from './InspectionSection';
+export { default as TreatmentSection } from './TreatmentSection';

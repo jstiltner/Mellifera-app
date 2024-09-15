@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voice Processing Test</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/babel">
+      const VoiceControl = () => {
+        const [transcript, setTranscript] = React.useState('');
+        const [isListening, setIsListening] = React.useState(false);
+        const [response, setResponse] = React.useState('');
+        const recognition = React.useRef(null);
+
+        React.useEffect(() => {
+          if ('webkitSpeechRecognition' in window) {
+            recognition.current = new webkitSpeechRecognition();
+            recognition.current.continuous = true;
+            recognition.current.interimResults = true;
+
+            recognition.current.onresult = (event) => {
+              const current = event.resultIndex;
+              const transcript = event.results[current][0].transcript;
+              setTranscript(transcript);
+            };
+
+            recognition.current.onend = () => {
+              setIsListening(false);
+            };
+          }
+        }, []);
+
+        const startListening = () => {
+          setTranscript('');
+          setResponse('');
+          setIsListening(true);
+          recognition.current.start();
+        };
+
+        const stopListening = async () => {
+          setIsListening(false);
+          recognition.current.stop();
+          try {
+            const result = await axios.post('http://localhost:5050/api/process-transcript', {
+              transcript,
+              context: 'The user is performing a hive inspection.',
+            });
+            setResponse(result.data.aiResponse);
+            const audio = new Audio(result.data.audioUrl);
+            audio.play();
+          } catch (error) {
+            console.error('Error processing voice command:', error);
+            setResponse('Error processing voice command');
+          }
+        };
+
+        return (
+          <div>
+            <h1>Voice Processing Test</h1>
+            <button onClick={startListening} disabled={isListening}>
+              Start Listening
+            </button>
+            <button onClick={stopListening} disabled={!isListening}>
+              Stop Listening
+            </button>
+            <p>Transcript: {transcript}</p>
+            <p>Response: {response}</p>
+          </div>
+        );
+      };
+
+      ReactDOM.render(<VoiceControl />, document.getElementById('root'));
+    </script>
+  </body>
+</html>

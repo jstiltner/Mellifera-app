@@ -62,7 +62,9 @@ router.post('/:hiveId', auth, async (req, res) => {
     });
 
     if (!hive) {
-      return res.status(404).json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
+      return res
+        .status(404)
+        .json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
     }
 
     const newInspection = new Inspection({
@@ -97,7 +99,9 @@ router.post('/:hiveId', auth, async (req, res) => {
     res.status(201).json(savedInspection);
   } catch (error) {
     console.error('Error in inspection creation:', error);
-    res.status(400).json({ error: 'Bad Request', message: 'Error creating inspection', details: error.message });
+    res
+      .status(400)
+      .json({ error: 'Bad Request', message: 'Error creating inspection', details: error.message });
   }
 });
 
@@ -153,7 +157,9 @@ router.get('/:hiveId', auth, async (req, res) => {
     });
 
     if (!hive) {
-      return res.status(404).json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
+      return res
+        .status(404)
+        .json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
     }
 
     const inspections = await Inspection.find({ hive: hiveId }).sort({ date: -1 });
@@ -161,7 +167,11 @@ router.get('/:hiveId', auth, async (req, res) => {
     res.status(200).json(inspections);
   } catch (error) {
     console.error('Error fetching inspections:', error);
-    res.status(400).json({ error: 'Bad Request', message: 'Error fetching inspections', details: error.message });
+    res.status(400).json({
+      error: 'Bad Request',
+      message: 'Error fetching inspections',
+      details: error.message,
+    });
   }
 });
 
@@ -214,13 +224,17 @@ router.get('/inspectionReport/:id', auth, async (req, res) => {
     const inspection = await Inspection.findOne({ _id: id });
 
     if (!inspection) {
-      return res.status(404).json({ error: 'Not Found', message: 'Inspection not found or unauthorized' });
+      return res
+        .status(404)
+        .json({ error: 'Not Found', message: 'Inspection not found or unauthorized' });
     }
 
     res.status(200).json(inspection);
   } catch (error) {
     console.error('Error fetching inspection:', error);
-    res.status(400).json({ error: 'Bad Request', message: 'Error fetching inspection', details: error.message });
+    res
+      .status(400)
+      .json({ error: 'Bad Request', message: 'Error fetching inspection', details: error.message });
   }
 });
 
@@ -283,13 +297,17 @@ router.put('/hives/:hiveId/inspections/:id', auth, async (req, res) => {
     });
 
     if (!hive) {
-      return res.status(404).json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
+      return res
+        .status(404)
+        .json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
     }
 
     const inspection = await Inspection.findOne({ _id: id, hive: hiveId });
 
     if (!inspection) {
-      return res.status(404).json({ error: 'Not Found', message: 'Inspection not found or unauthorized' });
+      return res
+        .status(404)
+        .json({ error: 'Not Found', message: 'Inspection not found or unauthorized' });
     }
 
     // Update the inspection
@@ -319,7 +337,9 @@ router.put('/hives/:hiveId/inspections/:id', auth, async (req, res) => {
     res.json(updatedInspection);
   } catch (error) {
     console.error('Error updating inspection:', error);
-    res.status(400).json({ error: 'Bad Request', message: 'Error updating inspection', details: error.message });
+    res
+      .status(400)
+      .json({ error: 'Bad Request', message: 'Error updating inspection', details: error.message });
   }
 });
 
@@ -378,13 +398,17 @@ router.delete('/hives/:hiveId/inspections/:id', auth, async (req, res) => {
     });
 
     if (!hive) {
-      return res.status(404).json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
+      return res
+        .status(404)
+        .json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
     }
 
     const inspection = await Inspection.findOne({ _id: id, hive: hiveId });
 
     if (!inspection) {
-      return res.status(404).json({ error: 'Not Found', message: 'Inspection not found or unauthorized' });
+      return res
+        .status(404)
+        .json({ error: 'Not Found', message: 'Inspection not found or unauthorized' });
     }
 
     // Remove the inspection from the hive's inspections array
@@ -408,7 +432,9 @@ router.delete('/hives/:hiveId/inspections/:id', auth, async (req, res) => {
     res.json({ message: 'Inspection removed successfully' });
   } catch (error) {
     console.error('Error deleting inspection:', error);
-    res.status(400).json({ error: 'Bad Request', message: 'Error deleting inspection', details: error.message });
+    res
+      .status(400)
+      .json({ error: 'Bad Request', message: 'Error deleting inspection', details: error.message });
   }
 });
 

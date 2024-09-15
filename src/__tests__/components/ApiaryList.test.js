@@ -4,7 +4,12 @@ import userEvent from '@testing-library/react';
 import { MemoryRouter, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ApiaryList from '../../pages/ApiaryList';
-import { useApiaries, useCreateApiary, useUpdateApiary, useDeleteApiary } from '../../hooks/useApiaries';
+import {
+  useApiaries,
+  useCreateApiary,
+  useUpdateApiary,
+  useDeleteApiary,
+} from '../../hooks/useApiaries';
 
 jest.mock('../../hooks/useApiaries');
 

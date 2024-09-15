@@ -5,12 +5,8 @@ const useCustomSpeechRecognition = (confidenceThreshold = 0.8) => {
   const [isSpeechRecognitionAvailable, setIsSpeechRecognitionAvailable] = useState(true);
   const [error, setError] = useState(null);
 
-  const {
-    transcript,
-    listening,
-    resetTranscript,
-    browserSupportsSpeechRecognition
-  } = useSpeechRecognition();
+  const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } =
+    useSpeechRecognition();
 
   useEffect(() => {
     if (!browserSupportsSpeechRecognition) {
@@ -59,7 +55,7 @@ const useCustomSpeechRecognition = (confidenceThreshold = 0.8) => {
     stopListening,
     resetTranscript,
     isSpeechRecognitionAvailable,
-    error
+    error,
   };
 };
 

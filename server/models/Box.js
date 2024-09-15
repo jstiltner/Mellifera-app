@@ -19,7 +19,7 @@ const BoxSchema = new Schema({
   beeBreadFrameCount: { type: Number },
   beeSleeveCount: { type: Number },
   droneCombToFreeze: { type: Number },
-  
+
   // Additional fields from HiveDetails and ApiaryDetails
   name: { type: String },
   status: { type: String },
@@ -32,7 +32,7 @@ const BoxSchema = new Schema({
 });
 
 // Update the updatedAt field on save
-BoxSchema.pre('save', function(next) {
+BoxSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });

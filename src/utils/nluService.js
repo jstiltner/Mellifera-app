@@ -11,7 +11,7 @@ const NluResultSchema = new mongoose.Schema({
   command: String,
   intent: String,
   entities: Object,
-  timestamp: { type: Date, default: Date.now }
+  timestamp: { type: Date, default: Date.now },
 });
 
 const NluResult = mongoose.model('NluResult', NluResultSchema);
@@ -26,16 +26,16 @@ export const processCommand = async (command) => {
         model: OPENAI_CONFIG.model,
         messages: [
           { role: 'system', content: OPENAI_CONFIG.systemPrompt },
-          { role: 'user', content: command }
+          { role: 'user', content: command },
         ],
         temperature: OPENAI_CONFIG.temperature,
-        max_tokens: OPENAI_CONFIG.max_tokens
+        max_tokens: OPENAI_CONFIG.max_tokens,
       },
       {
         headers: {
-          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-          'Content-Type': 'application/json'
-        }
+          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
       }
     );
 
@@ -45,7 +45,7 @@ export const processCommand = async (command) => {
     const nluResult = new NluResult({
       command,
       intent: result.intent,
-      entities: result.entities
+      entities: result.entities,
     });
     await nluResult.save();
 
@@ -79,7 +79,7 @@ export const useNluService = () => {
     mutationFn: processCommand,
     onError: (error) => {
       console.error('Error in NLU service:', error);
-    }
+    },
   });
 
   const recentCommandsQuery = useQuery({

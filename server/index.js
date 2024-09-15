@@ -3,10 +3,10 @@ const path = require('path');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-require('dotenv').config();
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
-const routes = require('./routes/index');
-const voiceRoutes = require('./routes/voiceRoutes');
+const routes = require('./controllers/index');
+const voiceProcessingRoutes = require('./controllers/voiceProcessingRoutes');
 const passport = require('passport');
 const session = require('express-session');
 require('./config/passport');
@@ -19,7 +19,7 @@ require('./models/Hive');
 require('./models/Inspection');
 require('./models/Apiary');
 require('./models/User');
-// Add any other models you have
+require('./models/Feeding');
 
 const port = process.env.PORT || 3000;
 const DIST_DIR = path.join(__dirname, '../dist');
@@ -40,10 +40,12 @@ database.once('connected', () => {
 const app = express();
 
 // Update CORS configuration
-app.use(cors({
-  origin: 'http://localhost:3000', // Allow requests from this origin
-  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
-}));
+app.use(
+  cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(bodyParser.json());
@@ -65,13 +67,10 @@ app.use(passport.session());
 
 // Routes
 app.use('/api', routes);
-app.use('/api', voiceRoutes);
+app.use('/api', voiceProcessingRoutes);
 
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
-
-// Auth routes
-app.use('/auth', require('./routes/auth'));
 
 app.post('/api2/sync', async (req, res) => {
   const data = req.body;
@@ -93,6 +92,20 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('*', (req, res) => {
   res.sendFile(HTML_FILE);
 });
+
+// Check for required environment variables
+const requiredEnvVars = [
+  'OPENAI_API_KEY',
+  'AWS_ACCESS_KEY_ID',
+  'AWS_SECRET_ACCESS_KEY',
+  'AWS_REGION',
+];
+const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
+  process.exit(1);
+}
 
 app.listen(port, function () {
   console.log('App listening on port: ' + port);

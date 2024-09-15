@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 const BoxCreationForm = ({ onAddBox, initialBox }) => {
   const [box, setBox] = useState(initialBox || { boxNumber: '', type: '', frames: 10 });

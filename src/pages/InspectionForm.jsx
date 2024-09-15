@@ -37,9 +37,9 @@ const InspectionForm = ({ initialInspection }) => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prevState => ({
+    setFormData((prevState) => ({
       ...prevState,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === 'checkbox' ? checked : value,
     }));
   };
 
@@ -54,7 +54,11 @@ const InspectionForm = ({ initialInspection }) => {
 
     try {
       if (initialInspection) {
-        await updateInspectionMutation.mutateAsync({ hiveId, inspectionId: initialInspection._id, inspectionData: formData });
+        await updateInspectionMutation.mutateAsync({
+          hiveId,
+          inspectionId: initialInspection._id,
+          inspectionData: formData,
+        });
       } else {
         await createInspectionMutation.mutateAsync({ hiveId, inspectionData: formData });
       }
@@ -70,7 +74,7 @@ const InspectionForm = ({ initialInspection }) => {
   };
 
   const handleAIFlowComplete = (aiAnswers) => {
-    setFormData(prevState => ({
+    setFormData((prevState) => ({
       ...prevState,
       overallHealth: aiAnswers.hiveCondition,
       queenSeen: aiAnswers.queenPresence === 'Yes',
@@ -264,7 +268,9 @@ const InspectionForm = ({ initialInspection }) => {
               className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 disabled:opacity-50"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Submitting...' : `${initialInspection ? 'Update' : 'Submit'} Inspection`}
+              {isSubmitting
+                ? 'Submitting...'
+                : `${initialInspection ? 'Update' : 'Submit'} Inspection`}
             </button>
             <button
               type="button"

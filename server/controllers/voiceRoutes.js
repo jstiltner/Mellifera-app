@@ -17,7 +17,11 @@ const processVoiceCommand = async (command, context) => {
       {
         model: 'gpt-3.5-turbo',
         messages: [
-          { role: 'system', content: 'You are a beekeeping assistant AI. Interpret the user\'s voice command and provide a structured response.' },
+          {
+            role: 'system',
+            content:
+              "You are a beekeeping assistant AI. Interpret the user's voice command and provide a structured response.",
+          },
           { role: 'user', content: `Command: ${command}\nContext: ${JSON.stringify(context)}` },
         ],
         temperature: 0.7,
@@ -25,7 +29,7 @@ const processVoiceCommand = async (command, context) => {
       },
       {
         headers: {
-          'Authorization': `Bearer ${OPENAI_API_KEY}`,
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
           'Content-Type': 'application/json',
         },
       }
