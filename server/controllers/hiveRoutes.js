@@ -4,6 +4,80 @@ const auth = require('../middleware/auth');
 const Hive = require('../models/Hive');
 const Apiary = require('../models/Apiary');
 
+// ... (keep the existing routes)
+
+/**
+ * @swagger
+ * /api/hives/{id}:
+ *   get:
+ *     summary: Get a single hive by ID
+ *     description: Retrieves a specific hive by its ID for the authenticated user.
+ *     tags: [Hives]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the hive to retrieve
+ *     responses:
+ *       200:
+ *         description: Hive retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Hive'
+ *       404:
+ *         description: Hive not found or unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+router.get('/:id', auth, async (req, res) => {
+  console.log(`Fetching hive with ID: ${req.params.id}`);
+  try {
+    const hiveId = req.params.id;
+    const hive = await Hive.findById(hiveId)
+      .populate('parent', 'name location')
+      .populate('children')
+      .populate({
+        path: 'inspections',
+        options: { sort: { date: -1 }, limit: 10 } // Populate the latest 10 inspections
+      });
+
+    console.log('Hive found:', hive ? 'Yes' : 'No');
+
+    if (!hive) {
+      console.log('Hive not found');
+      return res.status(404).json({ error: 'Not Found', message: 'Hive not found' });
+    }
+
+    // Check if the hive belongs to an apiary owned by the user
+    const apiary = await Apiary.findOne({ _id: hive.parent, parent: req.user });
+    console.log('Apiary found:', apiary ? 'Yes' : 'No');
+
+    if (!apiary) {
+      console.log('Apiary not found or unauthorized');
+      return res.status(404).json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
+    }
+
+    console.log('Sending hive data with inspections');
+    res.json(hive);
+  } catch (error) {
+    console.error('Error fetching hive:', error);
+    res.status(500).json({ error: 'Internal Server Error', message: error.message });
+  }
+});
+
 /**
  * @swagger
  * /api/hives:
@@ -110,7 +184,6 @@ router.get('/', auth, async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error', message: error.message });
   }
 });
-
-// ... (rest of the file remains unchanged)
+// ... (keep the rest of the file unchanged)
 
 module.exports = router;

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mellifera-app-config
+data:
+  NODE_ENV: production
+  DATABASE_URL: "mongodb://mongodb-service:27017/mellifera"
+  VITE_API_BASE_URL: "/api"
+  # Add other environment variables as needed
+  # API_KEY: "your-api-key"

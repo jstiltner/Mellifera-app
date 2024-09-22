@@ -1,13 +1,11 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import PropTypes from 'prop-types';
 import { useTreatments } from '../hooks/useTreatments';
 import { errorToast, successToast } from '../utils/errorHandling';
 import Button from '../components/common/Button';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 
-const TreatmentForm = () => {
-  const { id: hiveId } = useParams();
-  const navigate = useNavigate();
+const TreatmentForm = ({ onClose, hiveId }) => {
   const { createTreatment } = useTreatments();
 
   const [treatmentData, setTreatmentData] = useState({
@@ -29,7 +27,7 @@ const TreatmentForm = () => {
       try {
         await createTreatment.mutateAsync(treatmentData);
         successToast('Treatment added successfully');
-        navigate(`/hives/${hiveId}`);
+        onClose(); // Close the modal on success
       } catch (error) {
         errorToast(error, 'Error adding treatment');
       }
@@ -116,8 +114,8 @@ const TreatmentForm = () => {
             </Button>
             <Button
               type="button"
-              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-              onClick={() => navigate(`/hives/${hiveId}`)}
+              className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+              onClick={onClose}
             >
               Cancel
             </Button>
@@ -126,6 +124,11 @@ const TreatmentForm = () => {
       </div>
     </ErrorBoundary>
   );
+};
+
+TreatmentForm.propTypes = {
+  onClose: PropTypes.func.isRequired,
+  hiveId: PropTypes.string.isRequired,
 };
 
 export default TreatmentForm;

@@ -1,15 +1,16 @@
 import { useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
 import TreatmentView from '../treatments/TreatmentView';
+import TreatmentForm from '../../pages/TreatmentForm';
 import { useTreatments } from '../../hooks/useTreatments';
 import { errorToast, successToast } from '../../utils/errorHandling';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 const TreatmentSection = ({ hiveId }) => {
   const [selectedTreatment, setSelectedTreatment] = useState(null);
+  const [isAddingTreatment, setIsAddingTreatment] = useState(false);
   const { getTreatmentsByHive, updateTreatment, deleteTreatment } = useTreatments();
 
   const {
@@ -45,6 +46,14 @@ const TreatmentSection = ({ hiveId }) => {
     [deleteTreatment]
   );
 
+  const handleAddTreatmentClick = () => {
+    setIsAddingTreatment(true);
+  };
+
+  const handleAddTreatmentClose = () => {
+    setIsAddingTreatment(false);
+  };
+
   if (isTreatmentsLoading) {
     return <LoadingSpinner />;
   }
@@ -61,14 +70,13 @@ const TreatmentSection = ({ hiveId }) => {
     <div className="bg-gray-50 p-6 rounded-md shadow">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-semibold text-indigo-600">Treatment History</h2>
-        <Link to={`/hives/${hiveId}/add-treatment`}>
-          <Button
-            className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out"
-            aria-label="Add new treatment"
-          >
-            Add Treatment
-          </Button>
-        </Link>
+        <Button
+          className="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded transition duration-300 ease-in-out"
+          onClick={handleAddTreatmentClick}
+          aria-label="Add new treatment"
+        >
+          Add Treatment
+        </Button>
       </div>
       {Array.isArray(treatments) && treatments.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -108,6 +116,9 @@ const TreatmentSection = ({ hiveId }) => {
           onUpdate={handleUpdateTreatment}
           onDelete={handleDeleteTreatment}
         />
+      </Modal>
+      <Modal isOpen={isAddingTreatment} onClose={handleAddTreatmentClose}>
+        <TreatmentForm onClose={handleAddTreatmentClose} hiveId={hiveId} />
       </Modal>
     </div>
   );

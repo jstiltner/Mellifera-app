@@ -87,11 +87,14 @@ router.post('/', auth, async (req, res) => {
       const savedTreatment = await newTreatment.save();
       createdTreatments.push(savedTreatment);
 
-      // Update the hive's treatments array and relevant fields
-      hive.treatments.push(savedTreatment._id);
-      hive.lastTreatmentDate = savedTreatment.date;
-
-      await hive.save();
+      // Update the hive using updateOne
+      await Hive.updateOne(
+        { _id: hive._id },
+        {
+          $push: { treatments: savedTreatment._id },
+          $set: { lastTreatmentDate: savedTreatment.date }
+        }
+      );
     }
 
     res.status(201).json(createdTreatments.length === 1 ? createdTreatments[0] : createdTreatments);
@@ -215,9 +218,11 @@ router.put('/:id', auth, async (req, res) => {
     Object.assign(treatment, treatmentData);
     const updatedTreatment = await treatment.save();
 
-    // Update hive's last treatment date
-    hive.lastTreatmentDate = updatedTreatment.date;
-    await hive.save();
+    // Update hive's last treatment date using updateOne
+    await Hive.updateOne(
+      { _id: hive._id },
+      { $set: { lastTreatmentDate: updatedTreatment.date } }
+    );
 
     res.json(updatedTreatment);
   } catch (error) {
@@ -273,17 +278,18 @@ router.delete('/:id', auth, async (req, res) => {
         .json({ error: 'Not Found', message: 'Hive not found or unauthorized' });
     }
 
-    // Remove the treatment from the hive's treatments array
-    hive.treatments.pull(treatment._id);
-
     // Delete the treatment
     await treatment.remove();
 
-    // Update the hive's last treatment date if necessary
+    // Update the hive using updateOne
     const latestTreatment = await Treatment.findOne({ hive: hive._id }).sort({ date: -1 });
-    hive.lastTreatmentDate = latestTreatment ? latestTreatment.date : null;
-
-    await hive.save();
+    await Hive.updateOne(
+      { _id: hive._id },
+      {
+        $pull: { treatments: treatment._id },
+        $set: { lastTreatmentDate: latestTreatment ? latestTreatment.date : null }
+      }
+    );
 
     res.json({ message: 'Treatment removed successfully' });
   } catch (error) {

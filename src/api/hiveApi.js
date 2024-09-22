@@ -1,13 +1,16 @@
 import axios from 'axios';
 
-const API_BASE_URL = '/api'; // Adjust this if your API has a different base URL
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 export const fetchHive = async (hiveId) => {
   try {
+    console.log(`Fetching hive with ID: ${hiveId}`);
     const response = await axios.get(`${API_BASE_URL}/hives/${hiveId}`);
+    console.log('Hive data received:', response.data);
     return response.data;
   } catch (error) {
-    throw new Error('Failed to fetch hive data');
+    console.error('Error fetching hive data:', error.response ? error.response.data : error.message);
+    throw new Error(error.response ? error.response.data.message : 'Failed to fetch hive data');
   }
 };
 
@@ -52,5 +55,35 @@ export const addTreatment = async (hiveId, treatmentData) => {
     return response.data;
   } catch (error) {
     throw new Error('Failed to add treatment');
+  }
+};
+
+export const addInspection = async (hiveId, inspectionData) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/hives/${hiveId}/inspections`, inspectionData);
+    return response.data;
+  } catch (error) {
+    console.error('Error adding inspection:', error.response ? error.response.data : error.message);
+    throw new Error(error.response ? error.response.data.message : 'Failed to add inspection');
+  }
+};
+
+export const fetchInspections = async (hiveId) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/inspections/${hiveId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching inspections:', error.response ? error.response.data : error.message);
+    throw new Error(error.response ? error.response.data.message : 'Failed to fetch inspections');
+  }
+};
+
+export const addFeeding = async (hiveId, feedingData) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/hives/${hiveId}/feedings`, feedingData);
+    return response.data;
+  } catch (error) {
+    console.error('Error adding feeding:', error.response ? error.response.data : error.message);
+    throw new Error(error.response ? error.response.data.message : 'Failed to add feeding');
   }
 };

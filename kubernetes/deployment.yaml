@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mellifera-app
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mellifera-app
+  template:
+    metadata:
+      labels:
+        app: mellifera-app
+    spec:
+      containers:
+      - name: mellifera-app
+        image: mellifera-app:v1.0.1  # Update this tag when you rebuild the image
+        ports:
+        - containerPort: 5000
+        envFrom:
+        - configMapRef:
+            name: mellifera-app-config
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+        # Add volume mounts if needed
+        # volumeMounts:
+        # - name: data
+        #   mountPath: /app/data
+      # Add volumes if needed
+      # volumes:
+      # - name: data
+      #   persistentVolumeClaim:
+      #     claimName: mellifera-app-pvc

@@ -1,3 +1,4 @@
+# Production Dockerfile
 # Stage 1: Build the React application
 FROM node:18-alpine as client-builder
 
@@ -14,6 +15,11 @@ RUN npm ci
 
 # Copy the rest of the client application code
 COPY . .
+
+
+# Add build argument for API base URL
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
 # Build the Vite app
 RUN npm run build
@@ -37,6 +43,9 @@ COPY server ./server
 
 # Copy the built client files from the previous stage
 COPY --from=client-builder /app/client/dist ./client/dist
+
+# Remove unnecessary files
+RUN rm -rf /app/node_modules/.cache /app/npm-debug.log /app/package-lock.json
 
 # Expose the port the app runs on
 EXPOSE 5000
