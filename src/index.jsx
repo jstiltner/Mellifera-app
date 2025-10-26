@@ -2,6 +2,7 @@ import 'regenerator-runtime/runtime';
 import { useState, useEffect, useCallback } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
 import Dashboard from './components/layout/Dashboard';
 import Reports from './components/layout/Reports';
 import Login from './components/forms/Login';
@@ -9,8 +10,11 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 import { ErrorProvider } from './context/ErrorContext';
 import { SpeechRecognitionProvider } from './context/SpeechRecognitionContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { GuestModeProvider } from './context/GuestModeContext';
 import localForageUtil from './localForageUtil';
 import 'leaflet/dist/leaflet.css'; // Add this line to import Leaflet CSS
+import './styles/globals.css';
 import './styles/tailwind.css';
 import ApiaryDetails from './pages/ApiaryDetails';
 import HiveDetails from './pages/HiveDetails';
@@ -43,6 +47,9 @@ if ('serviceWorker' in navigator && 'SyncManager' in window) {
 
 const AppContent = ({ isOnline }) => {
   const navigate = useNavigate();
+  
+  // Enable global keyboard shortcuts
+  useKeyboardShortcuts();
 
   const handleVoiceCommand = useCallback(
     (action, entity, transcript) => {
@@ -267,15 +274,19 @@ const AppWithProviders = () => {
 
   return (
     <ErrorBoundary>
-      <ErrorProvider>
-        <AuthProvider>
-          <AuthenticatedQueryClientProvider>
-            <Router>
-              <AppContent isOnline={isOnline} />
-            </Router>
-          </AuthenticatedQueryClientProvider>
-        </AuthProvider>
-      </ErrorProvider>
+      <GuestModeProvider>
+        <ThemeProvider>
+          <ErrorProvider>
+            <AuthProvider>
+              <AuthenticatedQueryClientProvider>
+                <Router>
+                  <AppContent isOnline={isOnline} />
+                </Router>
+              </AuthenticatedQueryClientProvider>
+            </AuthProvider>
+          </ErrorProvider>
+        </ThemeProvider>
+      </GuestModeProvider>
     </ErrorBoundary>
   );
 };

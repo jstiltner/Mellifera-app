@@ -1,15 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import localForage from 'localforage';
+import { useGuestMode } from '../context/GuestModeContext';
 
 const inspectionsStore = localForage.createInstance({
   name: 'inspections',
 });
 
-const fetchInspections = async ({ hiveId }) => {
+const fetchInspections = async ({ hiveId, isGuestMode, guestOperations }) => {
   if (!hiveId) {
     throw new Error('Hive ID is required');
   }
+  
+  if (isGuestMode) {
+    return guestOperations.query('inspections', (inspection) => inspection.hiveId === hiveId);
+  }
+  
   try {
     const { data } = await axios.get(`/api/inspections/${hiveId}`);
     await inspectionsStore.setItem(`hive_${hiveId}`, data);
@@ -23,7 +29,13 @@ const fetchInspections = async ({ hiveId }) => {
   }
 };
 
-const fetchInspection = async (inspectionId) => {
+const fetchInspection = async (inspectionId, isGuestMode, guestOperations) => {
+  if (isGuestMode) {
+    const inspection = guestOperations.getById('inspections', inspectionId);
+    if (!inspection) throw new Error('Inspection not found');
+    return inspection;
+  }
+  
   try {
     const { data } = await axios.get(`/api/inspections/inspectionReport/${inspectionId}`);
     return data;
@@ -41,7 +53,11 @@ const fetchInspection = async (inspectionId) => {
   }
 };
 
-const createInspection = async ({ hiveId, inspectionData }) => {
+const createInspection = async ({ hiveId, inspectionData, isGuestMode, guestOperations }) => {
+  if (isGuestMode) {
+    return guestOperations.create('inspections', { hiveId, ...inspectionData });
+  }
+  
   if (navigator.onLine) {
     const { data } = await axios.post(`/api/inspections/${hiveId}`, inspectionData);
     const cachedInspections = (await inspectionsStore.getItem(`hive_${hiveId}`)) || [];
@@ -61,7 +77,12 @@ const createInspection = async ({ hiveId, inspectionData }) => {
   }
 };
 
-const updateInspection = async ({ hiveId, inspectionId, inspectionData }) => {
+const updateInspection = async ({ hiveId, inspectionId, inspectionData, isGuestMode, guestOperations }) => {
+  if (isGuestMode) {
+    guestOperations.update('inspections', inspectionId, inspectionData);
+    return guestOperations.getById('inspections', inspectionId);
+  }
+  
   if (navigator.onLine) {
     const { data } = await axios.put(
       `/api/hives/${hiveId}/inspections/${inspectionId}`,
@@ -85,7 +106,12 @@ const updateInspection = async ({ hiveId, inspectionId, inspectionData }) => {
   }
 };
 
-const deleteInspection = async ({ hiveId, inspectionId }) => {
+const deleteInspection = async ({ hiveId, inspectionId, isGuestMode, guestOperations }) => {
+  if (isGuestMode) {
+    guestOperations.delete('inspections', inspectionId);
+    return { success: true };
+  }
+  
   if (navigator.onLine) {
     await axios.delete(`/api/hives/${hiveId}/inspections/${inspectionId}`);
     const cachedInspections = (await inspectionsStore.getItem(`hive_${hiveId}`)) || [];
@@ -105,27 +131,32 @@ const deleteInspection = async ({ hiveId, inspectionId }) => {
 };
 
 export const useInspections = ({ hiveId }) => {
+  const { isGuestMode, guestOperations } = useGuestMode();
+  
   return useQuery({
     queryKey: ['inspections', hiveId],
-    queryFn: () => fetchInspections({ hiveId }),
+    queryFn: () => fetchInspections({ hiveId, isGuestMode, guestOperations }),
     enabled: !!hiveId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
 export const useInspection = (inspectionId) => {
+  const { isGuestMode, guestOperations } = useGuestMode();
+  
   return useQuery({
     queryKey: ['inspection', inspectionId],
-    queryFn: () => fetchInspection(inspectionId),
+    queryFn: () => fetchInspection(inspectionId, isGuestMode, guestOperations),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
 export const useCreateInspection = () => {
   const queryClient = useQueryClient();
+  const { isGuestMode, guestOperations } = useGuestMode();
 
   return useMutation({
-    mutationFn: createInspection,
+    mutationFn: (params) => createInspection({ ...params, isGuestMode, guestOperations }),
     onMutate: async ({ hiveId, inspectionData }) => {
       await queryClient.cancelQueries({ queryKey: ['inspections', hiveId] });
       const previousInspections = queryClient.getQueryData(['inspections', hiveId]);
@@ -155,9 +186,10 @@ export const useCreateInspection = () => {
 
 export const useUpdateInspection = () => {
   const queryClient = useQueryClient();
+  const { isGuestMode, guestOperations } = useGuestMode();
 
   return useMutation({
-    mutationFn: updateInspection,
+    mutationFn: (params) => updateInspection({ ...params, isGuestMode, guestOperations }),
     onMutate: async ({ hiveId, inspectionId, inspectionData }) => {
       await queryClient.cancelQueries({ queryKey: ['inspections', hiveId] });
       const previousInspections = queryClient.getQueryData(['inspections', hiveId]);
@@ -183,9 +215,10 @@ export const useUpdateInspection = () => {
 
 export const useDeleteInspection = () => {
   const queryClient = useQueryClient();
+  const { isGuestMode, guestOperations } = useGuestMode();
 
   return useMutation({
-    mutationFn: deleteInspection,
+    mutationFn: (params) => deleteInspection({ ...params, isGuestMode, guestOperations }),
     onMutate: async ({ hiveId, inspectionId }) => {
       await queryClient.cancelQueries({ queryKey: ['inspections', hiveId] });
       const previousInspections = queryClient.getQueryData(['inspections', hiveId]);

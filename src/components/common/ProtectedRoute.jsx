@@ -1,11 +1,19 @@
 import { Navigate } from 'react-router-dom';
 import { useAuthContext } from '../../context/AuthContext';
+import { useGuestMode } from '../../context/GuestModeContext';
 import ErrorBoundary from './ErrorBoundary';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
 
 const ProtectedRoute = ({ children }) => {
   const { user, token, isLoading, authError } = useAuthContext();
+  const { isGuestMode } = useGuestMode();
+
+  // Allow guest mode users through
+  if (isGuestMode) {
+    console.log('ProtectedRoute: Guest mode active, allowing access');
+    return <ErrorBoundary>{children}</ErrorBoundary>;
+  }
 
   if (isLoading) {
     console.log('ProtectedRoute: Loading user data');

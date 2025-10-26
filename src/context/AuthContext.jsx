@@ -2,10 +2,11 @@
 import { createContext, useState, useEffect, useContext, useMemo, useCallback } from 'react';
 import localForage from 'localforage';
 import axios from 'axios';
+import { API_CONFIG, API_ENDPOINTS } from '../config/api';
 
-// Set the base URL for all axios requests
-axios.defaults.baseURL = 'http://localhost:5050';
-const API_BASE_URL = '/api'; // Adjust this if your API has a different base URL
+// Configure axios with centralized settings
+axios.defaults.baseURL = API_CONFIG.baseURL;
+axios.defaults.timeout = API_CONFIG.timeout;
 
 const AuthContext = createContext();
 
@@ -52,7 +53,7 @@ const AuthProvider = ({ children }) => {
   const fetchUser = async () => {
     try {
       console.log('AuthContext: Fetching user data');
-      const response = await axios.get(`${API_BASE_URL}/auth/me`);
+      const response = await axios.get(API_ENDPOINTS.AUTH.ME);
       setUser(response.data.user);
       console.log('AuthContext: User data fetched successfully');
     } catch (error) {
@@ -66,7 +67,7 @@ const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       console.log('AuthContext: Attempting login');
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, { email, password });
+      const response = await axios.post(API_ENDPOINTS.AUTH.LOGIN, { email, password });
       const { token: newToken } = response.data;
       setToken(newToken);
       await localForage.setItem('authToken', newToken);

@@ -5,18 +5,18 @@ import ErrorBoundary from '../common/ErrorBoundary';
 const Layout = () => {
   return (
     <ErrorBoundary>
-      <div className="flex flex-col min-h-screen bg-gray-100">
-        <header className="bg-white shadow-md p-4">
-          <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-xl md:text-2xl font-bold text-gray-800">Mellifera</h1>
+      <div className="flex flex-col min-h-screen bg-background">
+        <header className="bg-card border-b border-border p-4">
+          <div className="flex justify-between items-center px-4">
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">Mellifera</h1>
             <VoiceCommander />
           </div>
         </header>
-        <main className="flex-grow container mx-auto p-4">
+        <main className="flex-grow w-full">
           <Outlet />
         </main>
-        <footer className="bg-white shadow-md p-4 mt-auto">
-          <div className="container mx-auto text-center text-gray-600">
+        <footer className="bg-card border-t border-border p-4 mt-auto">
+          <div className="text-center text-muted-foreground text-sm">
             © {new Date().getFullYear()} Mellifera App
           </div>
         </footer>

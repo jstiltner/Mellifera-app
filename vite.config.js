@@ -6,6 +6,7 @@ import path from 'path';
 import { loadEnv } from 'vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 import viteCompression from 'vite-plugin-compression';
+import speechRecognitionPlugin from './vite-plugin-speech-recognition';
 
 export default defineConfig(({ command, mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
@@ -28,6 +29,7 @@ export default defineConfig(({ command, mode }) => {
         gzipSize: true,
         brotliSize: true,
       }),
+      speechRecognitionPlugin(),
     ],
     base: '',
     resolve: {
@@ -64,6 +66,10 @@ export default defineConfig(({ command, mode }) => {
         },
       },
       chunkSizeWarningLimit: 1000,
+      commonjsOptions: {
+        transformMixedEsModules: true,
+        exclude: [/react-speech-recognition/],
+      },
     },
     server: {
       port: 3000,
@@ -71,7 +77,7 @@ export default defineConfig(({ command, mode }) => {
         '/api': {
           target: 'http://localhost:5050',
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ''),
+          secure: false,
         },
       },
     },
@@ -90,7 +96,6 @@ export default defineConfig(({ command, mode }) => {
         'localforage',
         'axios',
         'regenerator-runtime',
-        'react-speech-recognition',
       ],
     },
     css: {
@@ -100,6 +105,7 @@ export default defineConfig(({ command, mode }) => {
     },
     esbuild: {
       jsxInject: `import React from 'react'`,
+      target: 'es2020',
     },
   };
 });

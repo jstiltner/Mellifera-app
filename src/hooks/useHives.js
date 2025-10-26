@@ -1,7 +1,19 @@
 import { useInfiniteQuery, useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
+import { useGuestMode } from '../context/GuestModeContext';
 
-const fetchHives = async ({ apiaryId, pageParam = 1 }) => {
+const fetchHives = async ({ apiaryId, pageParam = 1, isGuestMode, guestOperations }) => {
+  if (isGuestMode) {
+    const allHives = guestOperations.query('hives', (hive) =>
+      apiaryId ? hive.apiaryId === apiaryId : true
+    );
+    return {
+      hives: allHives,
+      currentPage: 1,
+      totalPages: 1,
+    };
+  }
+  
   try {
     const { data } = await axios.get(`/api/hives`, {
       params: { apiaryId, page: pageParam, limit: 10 },
@@ -12,10 +24,19 @@ const fetchHives = async ({ apiaryId, pageParam = 1 }) => {
   }
 };
 
-const fetchHive = async ({ hiveId }) => {
+const fetchHive = async ({ hiveId, isGuestMode, guestOperations }) => {
   if (!hiveId) {
     throw new Error('Hive ID is required');
   }
+  
+  if (isGuestMode) {
+    const hive = guestOperations.getById('hives', hiveId);
+    if (!hive) {
+      throw new Error('Hive not found');
+    }
+    return hive;
+  }
+  
   try {
     const { data } = await axios.get(`/api/hives/${hiveId}`);
     return data;
@@ -27,7 +48,11 @@ const fetchHive = async ({ hiveId }) => {
   }
 };
 
-const createHive = async ({ apiaryId, hiveData }) => {
+const createHive = async ({ apiaryId, hiveData, isGuestMode, guestOperations }) => {
+  if (isGuestMode) {
+    return guestOperations.create('hives', { apiaryId, ...hiveData });
+  }
+  
   try {
     const requestData = { apiaryId, ...hiveData };
     const { data } = await axios.post('/api/hives/', requestData);
@@ -37,7 +62,12 @@ const createHive = async ({ apiaryId, hiveData }) => {
   }
 };
 
-const updateHive = async ({ hiveId, hiveData }) => {
+const updateHive = async ({ hiveId, hiveData, isGuestMode, guestOperations }) => {
+  if (isGuestMode) {
+    guestOperations.update('hives', hiveId, hiveData);
+    return guestOperations.getById('hives', hiveId);
+  }
+  
   try {
     const { data } = await axios.put(`/api/hives/${hiveId}`, hiveData);
     return data;
@@ -46,7 +76,18 @@ const updateHive = async ({ hiveId, hiveData }) => {
   }
 };
 
-const addBox = async ({ hiveId, boxData }) => {
+const addBox = async ({ hiveId, boxData, isGuestMode, guestOperations }) => {
+  if (isGuestMode) {
+    const hive = guestOperations.getById('hives', hiveId);
+    const newBox = { ...boxData, _id: crypto.randomUUID() };
+    const updatedHive = {
+      ...hive,
+      children: [...(hive.children || []), newBox],
+    };
+    guestOperations.update('hives', hiveId, updatedHive);
+    return newBox;
+  }
+  
   try {
     const { data } = await axios.post(`/api/box-addition/${hiveId}`, { hiveId, ...boxData });
     return data;
@@ -55,7 +96,16 @@ const addBox = async ({ hiveId, boxData }) => {
   }
 };
 
-const updateBox = async ({ hiveId, boxId, boxData }) => {
+const updateBox = async ({ hiveId, boxId, boxData, isGuestMode, guestOperations }) => {
+  if (isGuestMode) {
+    const hive = guestOperations.getById('hives', hiveId);
+    const updatedChildren = hive.children.map((box) =>
+      box._id === boxId ? { ...box, ...boxData } : box
+    );
+    guestOperations.update('hives', hiveId, { ...hive, children: updatedChildren });
+    return { ...boxData, _id: boxId };
+  }
+  
   try {
     const { data } = await axios.put(`/api/hives/${hiveId}/boxes/${boxId}`, boxData);
     return data;
@@ -64,7 +114,14 @@ const updateBox = async ({ hiveId, boxId, boxData }) => {
   }
 };
 
-const deleteBox = async ({ hiveId, boxId }) => {
+const deleteBox = async ({ hiveId, boxId, isGuestMode, guestOperations }) => {
+  if (isGuestMode) {
+    const hive = guestOperations.getById('hives', hiveId);
+    const updatedChildren = hive.children.filter((box) => box._id !== boxId);
+    guestOperations.update('hives', hiveId, { ...hive, children: updatedChildren });
+    return { success: true };
+  }
+  
   try {
     const { data } = await axios.delete(`/api/hives/${hiveId}/boxes/${boxId}`);
     return data;
@@ -75,13 +132,15 @@ const deleteBox = async ({ hiveId, boxId }) => {
 
 // Hook to fetch all hives for an apiary
 export const useHives = ({ apiaryId }) => {
+  const { isGuestMode, guestOperations } = useGuestMode();
+  
   return useInfiniteQuery({
     queryKey: ['hives', apiaryId],
-    queryFn: ({ pageParam = 1 }) => fetchHives({ apiaryId, pageParam }),
+    queryFn: ({ pageParam = 1 }) => fetchHives({ apiaryId, pageParam, isGuestMode, guestOperations }),
     getNextPageParam: (lastPage, pages) => {
       return lastPage.currentPage < lastPage.totalPages ? lastPage.currentPage + 1 : undefined;
     },
-    enabled: !!apiaryId,
+    enabled: true, // Always enabled for both modes
     staleTime: 5 * 60 * 1000, // 5 minutes
     select: (data) => ({
       pages: data.pages,
@@ -93,12 +152,14 @@ export const useHives = ({ apiaryId }) => {
 
 // Hook to fetch a single hive
 export const useHive = ({ hiveId }) => {
+  const { isGuestMode, guestOperations } = useGuestMode();
+  
   return useQuery({
     queryKey: ['hive', hiveId],
-    queryFn: () => fetchHive({ hiveId }),
+    queryFn: () => fetchHive({ hiveId, isGuestMode, guestOperations }),
     enabled: !!hiveId,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    refetchInterval: isGuestMode ? false : 5 * 60 * 1000, // Don't refetch in guest mode
     retry: 3, // Retry 3 times on failure
     select: (data) => ({
       ...data,
@@ -106,7 +167,6 @@ export const useHive = ({ hiveId }) => {
     }),
     onError: (error) => {
       console.error('Error fetching hive:', error);
-      // You can add additional error handling here, such as showing a toast notification
     },
   });
 };
@@ -114,8 +174,10 @@ export const useHive = ({ hiveId }) => {
 // Hook to create a new hive
 export const useCreateHive = () => {
   const queryClient = useQueryClient();
+  const { isGuestMode, guestOperations } = useGuestMode();
+  
   return useMutation({
-    mutationFn: createHive,
+    mutationFn: (params) => createHive({ ...params, isGuestMode, guestOperations }),
     onMutate: async (newHive) => {
       await queryClient.cancelQueries({ queryKey: ['hives', newHive.apiaryId] });
       const previousHives = queryClient.getQueryData(['hives', newHive.apiaryId]);
@@ -161,8 +223,10 @@ export const useCreateHive = () => {
 // Hook to update an existing hive
 export const useUpdateHive = () => {
   const queryClient = useQueryClient();
+  const { isGuestMode, guestOperations } = useGuestMode();
+  
   return useMutation({
-    mutationFn: updateHive,
+    mutationFn: (params) => updateHive({ ...params, isGuestMode, guestOperations }),
     onMutate: async (updatedHive) => {
       await queryClient.cancelQueries({ queryKey: ['hive', updatedHive.hiveId] });
       const previousHive = queryClient.getQueryData(['hive', updatedHive.hiveId]);
@@ -189,8 +253,10 @@ export const useUpdateHive = () => {
 // Hook to add a new box to a hive
 export const useAddBox = () => {
   const queryClient = useQueryClient();
+  const { isGuestMode, guestOperations } = useGuestMode();
+  
   return useMutation({
-    mutationFn: addBox,
+    mutationFn: (params) => addBox({ ...params, isGuestMode, guestOperations }),
     onMutate: async ({ hiveId, boxData }) => {
       await queryClient.cancelQueries({ queryKey: ['hive', hiveId] });
       const previousHive = queryClient.getQueryData(['hive', hiveId]);
@@ -229,8 +295,10 @@ export const useAddBox = () => {
 // Hook to update an existing box in a hive
 export const useUpdateBox = () => {
   const queryClient = useQueryClient();
+  const { isGuestMode, guestOperations } = useGuestMode();
+  
   return useMutation({
-    mutationFn: updateBox,
+    mutationFn: (params) => updateBox({ ...params, isGuestMode, guestOperations }),
     onMutate: async ({ hiveId, boxId, boxData }) => {
       await queryClient.cancelQueries({ queryKey: ['hive', hiveId] });
       const previousHive = queryClient.getQueryData(['hive', hiveId]);
@@ -260,8 +328,10 @@ export const useUpdateBox = () => {
 // Hook to delete a box from a hive
 export const useDeleteBox = () => {
   const queryClient = useQueryClient();
+  const { isGuestMode, guestOperations } = useGuestMode();
+  
   return useMutation({
-    mutationFn: deleteBox,
+    mutationFn: (params) => deleteBox({ ...params, isGuestMode, guestOperations }),
     onMutate: async ({ hiveId, boxId }) => {
       await queryClient.cancelQueries({ queryKey: ['hive', hiveId] });
       const previousHive = queryClient.getQueryData(['hive', hiveId]);

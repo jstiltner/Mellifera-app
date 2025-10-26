@@ -1,13 +1,19 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { errorToast, successToast } from '../utils/errorHandling';
+import { useGuestMode } from '../context/GuestModeContext';
 
 const API_URL = '/api/feedings';
 
 export const useFeedings = () => {
   const queryClient = useQueryClient();
+  const { isGuestMode, guestOperations } = useGuestMode();
 
   const getFeedings = async (hiveId) => {
+    if (isGuestMode) {
+      return guestOperations.query('feedings', (feeding) => feeding.hiveId === hiveId);
+    }
+    
     try {
       const response = await axios.get(`${API_URL}/hive/${hiveId}`);
       return response.data;
@@ -18,6 +24,12 @@ export const useFeedings = () => {
   };
 
   const addFeeding = async (feedingData) => {
+    if (isGuestMode) {
+      const newFeeding = guestOperations.create('feedings', feedingData);
+      successToast('Feeding added successfully');
+      return newFeeding;
+    }
+    
     try {
       const response = await axios.post(API_URL, feedingData);
       successToast('Feeding added successfully');
@@ -29,6 +41,12 @@ export const useFeedings = () => {
   };
 
   const updateFeeding = async ({ id, ...feedingData }) => {
+    if (isGuestMode) {
+      guestOperations.update('feedings', id, feedingData);
+      successToast('Feeding updated successfully');
+      return guestOperations.getById('feedings', id);
+    }
+    
     try {
       const response = await axios.patch(`${API_URL}/${id}`, feedingData);
       successToast('Feeding updated successfully');
@@ -40,6 +58,12 @@ export const useFeedings = () => {
   };
 
   const deleteFeeding = async (id) => {
+    if (isGuestMode) {
+      guestOperations.delete('feedings', id);
+      successToast('Feeding deleted successfully');
+      return;
+    }
+    
     try {
       await axios.delete(`${API_URL}/${id}`);
       successToast('Feeding deleted successfully');

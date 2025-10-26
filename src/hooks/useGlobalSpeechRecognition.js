@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 import { useQueryClient } from '@tanstack/react-query';
+import { SpeechRecognition, useSpeechRecognition } from '../utils/speechRecognitionWrapper';
 
 const useGlobalSpeechRecognition = () => {
   const [isListening, setIsListening] = useState(false);

@@ -12,6 +12,8 @@ const session = require('express-session');
 require('./config/passport');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./swagger');
+const { initializeServiceChecks } = require('./services/serviceAvailability');
+const serviceStatusController = require('./controllers/serviceStatus');
 
 // Import all models
 require('./models/Box');
@@ -40,10 +42,28 @@ database.once('connected', () => {
 const app = express();
 
 // Update CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:5050',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5050',
+];
+
 app.use(
   cors({
-    origin: 'http://localhost:3000',
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
@@ -69,6 +89,10 @@ app.use(passport.session());
 app.use('/api', routes);
 app.use('/api', voiceProcessingRoutes);
 
+// Service status routes
+app.get('/api/services/status', serviceStatusController.getStatus);
+app.get('/api/services/features', serviceStatusController.getAvailableFeatures);
+
 // Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
@@ -93,19 +117,8 @@ app.get('*', (req, res) => {
   res.sendFile(HTML_FILE);
 });
 
-// Check for required environment variables
-const requiredEnvVars = [
-  'OPENAI_API_KEY',
-  'AWS_ACCESS_KEY_ID',
-  'AWS_SECRET_ACCESS_KEY',
-  'AWS_REGION',
-];
-const missingEnvVars = requiredEnvVars.filter((varName) => !process.env[varName]);
-
-if (missingEnvVars.length > 0) {
-  console.error(`Missing required environment variables: ${missingEnvVars.join(', ')}`);
-  process.exit(1);
-}
+// Initialize and log service availability
+initializeServiceChecks();
 
 app.listen(port, function () {
   console.log('App listening on port: ' + port);
