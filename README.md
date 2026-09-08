@@ -85,7 +85,11 @@ To get a local copy up and running, follow these simple steps.
    ```sh
    npm install
    ```
-4. Create a `.env` file in the root directory and add your environment variables (e.g., MongoDB connection string, JWT secret)
+4. Copy `.env.example` to `.env` in the root directory and fill in the values
+   ```sh
+   cp .env.example .env
+   ```
+   `SESSION_SECRET` has no default and the server will refuse to start without it.
 
 5. Start the development server
    ```sh

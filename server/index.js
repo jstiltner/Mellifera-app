@@ -21,6 +21,21 @@ require('./models/Apiary');
 require('./models/User');
 require('./models/Feeding');
 
+// Session signing key. There is deliberately no fallback: the previous default was
+// 'keyboard cat', the string from the express-session README, which is on every wordlist
+// and in every tutorial. A deployment that forgot to set SESSION_SECRET would have signed
+// its cookies with a value an attacker already knows, and would have looked healthy while
+// doing it. Refusing to boot is the only failure mode that gets noticed.
+const sessionSecret = process.env.SESSION_SECRET;
+if (!sessionSecret) {
+  console.error(
+    'SESSION_SECRET is not set. Refusing to start.\n' +
+      'Generate one with:  node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"\n' +
+      'and add it to .env as SESSION_SECRET=<value>.'
+  );
+  process.exit(1);
+}
+
 const port = process.env.PORT || 3000;
 const DIST_DIR = path.join(__dirname, '../dist');
 const HTML_FILE = path.join(DIST_DIR, 'index.html');
@@ -51,7 +66,7 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'keyboard cat',
+    secret: sessionSecret,
     resave: false,
     saveUninitialized: false,
     cookie: {

@@ -10,6 +10,35 @@ const User = require('../models/User');
 const router = express.Router();
 
 /**
+ * Hand a freshly minted JWT to the browser after an OAuth callback.
+ *
+ * Both callbacks used to do `res.redirect('/?token=' + token)`. A query string is the worst
+ * available place for a bearer credential: it is written to the browser's history, sent in the
+ * Referer header of every outbound link on the landing page, and recorded verbatim in the access
+ * log of anything the redirect passes through — an nginx front end, a CDN, an analytics tag. None
+ * of those places expire it; it stays valid for `jwtExpiration` wherever it landed.
+ *
+ * A cookie is the transport the browser was built to protect. HttpOnly keeps it away from XSS,
+ * SameSite=Lax keeps it off cross-site state-changing requests, and Secure keeps it off plaintext
+ * once NODE_ENV is production.
+ *
+ * Known gap, deliberately not papered over here: the SPA never consumed `?token=` either — nothing
+ * under src/ reads location.search or location.hash, and AuthContext only restores a token from
+ * storage. So OAuth sign-in did not actually log anyone in before this change and still does not.
+ * Completing it needs `req.cookies` on the API (cookie-parser) plus a client-side session bootstrap,
+ * which is a feature, not a security fix, and does not belong in this change.
+ */
+function issueAuthCookie(res, token) {
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    path: '/',
+  });
+}
+
+/**
  * @swagger
  * /auth/register:
  *   post:
@@ -170,14 +199,15 @@ router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }))
  *     tags: [Authentication]
  *     responses:
  *       302:
- *         description: Redirects to the application with a JWT token
+ *         description: Sets an HttpOnly session cookie and redirects to the application
  */
 router.get(
   '/facebook/callback',
   passport.authenticate('facebook', { failureRedirect: '/login' }),
   (req, res) => {
     const token = jwt.sign({ userId: req.user._id }, jwtSecret, { expiresIn: jwtExpiration });
-    res.redirect(`/?token=${token}`);
+    issueAuthCookie(res, token);
+    res.redirect('/');
   }
 );
 
@@ -201,14 +231,15 @@ router.get('/google', passport.authenticate('google', { scope: ['profile', 'emai
  *     tags: [Authentication]
  *     responses:
  *       302:
- *         description: Redirects to the application with a JWT token
+ *         description: Sets an HttpOnly session cookie and redirects to the application
  */
 router.get(
   '/google/callback',
   passport.authenticate('google', { failureRedirect: '/' }),
   (req, res) => {
     const token = jwt.sign({ userId: req.user._id }, jwtSecret, { expiresIn: jwtExpiration });
-    res.redirect(`/?token=${token}`);
+    issueAuthCookie(res, token);
+    res.redirect('/');
   }
 );
 
